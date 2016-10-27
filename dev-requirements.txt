@@ -1,0 +1,8 @@
+flake8
+pytest
+pytest-cache
+pytest-cover
+pytest-sugar
+pytest-xdist
+pytest-capturelog
+tox
