@@ -20,6 +20,14 @@ REQUIREMENTS = [
     "ruamel.yaml"
 ]
 
+SETUP_REQUIREMENTS = [
+    "pytest-runner",
+]
+
+TEST_REQUIREMENTS = [
+    "pytest"
+]
+
 ENTRY_POINTS = {
     'console_scripts': [
         'kinto-wizard = kinto_wizard.__main__:main'
@@ -52,5 +60,7 @@ setup(name='kinto-wizard',
       include_package_data=True,
       zip_safe=True,
       install_requires=REQUIREMENTS,
+      setup_requires=SETUP_REQUIREMENTS,
+      tests_require=TEST_REQUIREMENTS,
       test_suite="tests",
       entry_points=ENTRY_POINTS)
