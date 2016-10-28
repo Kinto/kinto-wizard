@@ -17,11 +17,12 @@ CONTRIBUTORS = read_file('CONTRIBUTORS.rst')
 
 REQUIREMENTS = [
     "kinto-http",
+    "ruamel.yaml"
 ]
 
 ENTRY_POINTS = {
     'console_scripts': [
-        'kinto-wizard = kinto.__main__:main'
+        'kinto-wizard = kinto_wizard.__main__:main'
     ]
 }
 
