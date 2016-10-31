@@ -54,4 +54,3 @@ def introspect_group(client, bid, gid):
         'data': {'members': group['data']['members']},
         'permissions': group['permissions']
     }
-
