@@ -5,6 +5,7 @@ from kinto_http import cli_utils
 
 from .logger import logger
 from .kinto2yaml import introspect_server
+from .yaml2kinto import initialize_server
 
 
 def main():
@@ -38,8 +39,7 @@ def main():
 
     elif args.which == 'load':
         logger.debug("Start initialization...")
-        initialize_server(client, args.filepath)
-
-
-if __name__ == "__main__":
-    main()
+        logger.info("Load YAML file {!r}".format(args.filepath))
+        with open(args.filepath, 'r') as f:
+            config = yaml.load(f)
+            initialize_server(client, config)
