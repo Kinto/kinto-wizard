@@ -17,6 +17,10 @@ $(INSTALL_STAMP): $(PYTHON) setup.py
 	$(VENV)/bin/pip install -Ue .
 	touch $(INSTALL_STAMP)
 
+$(VENV)/bin/kinto:
+	$(VENV)/bin/pip install -U kinto
+install-kinto: $(VENV)/bin/kinto
+
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON) dev-requirements.txt
 	$(VENV)/bin/pip install -r dev-requirements.txt
@@ -32,7 +36,7 @@ migrate:
 $(SERVER_CONFIG):
 	$(VENV)/bin/kinto --ini $(SERVER_CONFIG) init --backend=memory
 
-runkinto: install $(SERVER_CONFIG) migrate
+runkinto: install-kinto $(SERVER_CONFIG) migrate
 	$(VENV)/bin/kinto --ini $(SERVER_CONFIG) start
 
 build-requirements:
