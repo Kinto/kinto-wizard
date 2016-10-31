@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 
 from ruamel import yaml
@@ -35,7 +36,7 @@ def main():
     if args.which == 'dump':
         logger.debug("Start introspection...")
         result = introspect_server(client)
-        print(yaml.safe_dump(result, default_flow_style=False))
+        print(yaml.safe_dump(result, default_flow_style=False), end='')
 
     elif args.which == 'load':
         logger.debug("Start initialization...")
