@@ -43,7 +43,10 @@ def main():
     if args.which == 'dump':
         logger.debug("Start introspection...")
         result = introspect_server(client)
-        print(yaml.safe_dump(result, default_flow_style=False), end='')
+        yaml_result = yaml.safe_dump(result, default_flow_style=False)
+        if hasattr(yaml_result, 'decode'):
+            yaml_result = yaml_result.decode('utf8')
+        print(yaml_result, end=u'')
 
     elif args.which == 'load':
         logger.debug("Start initialization...")
