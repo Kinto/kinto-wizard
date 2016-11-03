@@ -1,9 +1,11 @@
 import os
 import unittest
-import subprocess
+import sys
 import tempfile
 
 import requests
+
+from kinto_wizard.__main__ import main
 
 
 class RoundTrip(unittest.TestCase):
@@ -15,17 +17,22 @@ class RoundTrip(unittest.TestCase):
 
     def test_round_trip(self):
         cmd = 'kinto-wizard {} --server={} --auth={}'
-
         load_cmd = cmd.format("load {}".format(self.file),
                               self.server, self.auth)
-        subprocess.check_call(load_cmd.split(" "))
+        sys.argv = load_cmd.split(" ")
+        main()
 
         load_cmd = cmd.format("dump", self.server, self.auth)
 
         with tempfile.NamedTemporaryFile() as fp:
-            # Dump content.
-            subprocess.check_call(load_cmd.split(" "), stdout=fp, stderr=open(os.devnull))
+            sys.argv = load_cmd.split(" ")
+            stdout = sys.stdout
+            sys.stdout = fp
+            main()
+            fp.flush()
+            sys.stdout = stdout
 
             # Check that identical to original file.
-            diff_cmd = 'diff {} {}'.format(self.file, fp.name)
-            subprocess.check_call(diff_cmd.split(" "))
+            original = open(self.file).read()
+            generated = open(fp.name).read()
+            assert original == generated
