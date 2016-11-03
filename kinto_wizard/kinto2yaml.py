@@ -20,7 +20,7 @@ def introspect_bucket(client, bid):
         return None
 
     permissions = bucket.get('permissions', {})
-    if 'write' not in permissions:
+    if len(permissions) == 0:
         error_msg = 'Could not read permissions of bucket {!r}'.format(bid)
         raise kinto_exceptions.KintoException(error_msg)
 
