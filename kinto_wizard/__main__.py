@@ -16,23 +16,30 @@ def main():
                                        dest='subcommand',
                                        help="Choose and run with --help")
     subparsers.required = True
-    for command in ('load', 'dump'):
-        subparser = subparsers.add_parser(command)
-        subparser.set_defaults(which=command)
 
-        cli_utils.add_parser_options(subparser,
-                                     include_bucket=False,
-                                     include_collection=False)
+    # load sub-command.
+    subparser = subparsers.add_parser('load')
+    subparser.set_defaults(which='load')
+    cli_utils.add_parser_options(subparser,
+                                 include_bucket=False,
+                                 include_collection=False)
+    subparser.add_argument(dest='filepath', help='YAML file')
 
-        if command == 'load':
-            subparser.add_argument(dest='filepath', help='YAML file')
+    # dump sub-command.
+    subparser = subparsers.add_parser('dump')
+    subparser.set_defaults(which='dump')
+    cli_utils.add_parser_options(subparser,
+                                 include_bucket=False,
+                                 include_collection=False)
 
+    # Parse CLI args.
     args = parser.parse_args()
     cli_utils.setup_logger(logger, args)
 
     logger.debug("Instantiate Kinto client.")
     client = cli_utils.create_client_from_args(args)
 
+    # Run chosen subcommand.
     if args.which == 'dump':
         logger.debug("Start introspection...")
         result = introspect_server(client)
