@@ -6,7 +6,8 @@ env:
     - TOX_ENV=kinto-master
     - TOX_ENV=flake8
 install:
-    - make install
+    - make install-dev
+    - make runkinto &
 script:
     - tox -e $TOX_ENV
 after_success:

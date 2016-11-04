@@ -1,3 +1,4 @@
+kinto
 flake8
 pytest
 pytest-cache
