@@ -21,7 +21,7 @@ def initialize_server(client, config):
                 bucket_current_collections = {}
 
                 # Create the bucket if not present in the introspection
-                batch.create_bucket(bucket_id,
+                batch.create_bucket(bucket=bucket_id,
                                     data=bucket_data,
                                     permissions=bucket_permissions)
             else:
@@ -35,7 +35,7 @@ def initialize_server(client, config):
 
                 if (current_bucket_data != bucket_data or
                         current_bucket_permissions != bucket_permissions):
-                    batch.patch_bucket(bucket_id,
+                    batch.patch_bucket(bucket=bucket_id,
                                        data=bucket_data,
                                        permissions=bucket_permissions)
 
@@ -46,7 +46,7 @@ def initialize_server(client, config):
                 group_permissions = group_info.get('permissions', {})
 
                 if not group_exists:
-                    batch.create_group(group_id,
+                    batch.create_group(group=group_id,
                                        bucket=bucket_id,
                                        data=group_data,
                                        permissions=group_permissions)
@@ -57,7 +57,7 @@ def initialize_server(client, config):
 
                     if (current_group_data != group_data or
                             current_group_permissions != group_permissions):
-                        batch.patch_group(group_id,
+                        batch.patch_group(group=group_id,
                                           bucket=bucket_id,
                                           data=group_data,
                                           permissions=group_permissions)
@@ -69,7 +69,7 @@ def initialize_server(client, config):
                 collection_permissions = collection_info.get('permissions', {})
 
                 if not collection_exists:
-                    batch.create_collection(collection_id,
+                    batch.create_collection(collection=collection_id,
                                             bucket=bucket_id,
                                             data=collection_data,
                                             permissions=collection_permissions)
@@ -80,7 +80,7 @@ def initialize_server(client, config):
 
                     if (current_collection_data != collection_data or
                             current_collection_permissions != collection_permissions):
-                        batch.patch_collection(collection_id,
+                        batch.patch_collection(collection=collection_id,
                                                bucket=bucket_id,
                                                data=collection_data,
                                                permissions=collection_permissions)
