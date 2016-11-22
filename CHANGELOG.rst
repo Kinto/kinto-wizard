@@ -8,6 +8,4 @@ This document describes changes between each past release.
 
 **Initial version**
 
-- Supports dump of groups data as well as buckets, collections, and
-  groups permissions to a YAML file.
-- Supports loading a YAML file to an existing Kinto server.
+- Supports dumping/loading groups and permissions from/to a YAML file.
