@@ -30,7 +30,7 @@ def introspect_bucket(client, bid, full=False):
 
     collections = client.get_collections(bucket=bid)
     groups = client.get_groups(bucket=bid)
-    result= {
+    result = {
         'permissions': _sorted_principals(permissions),
         'collections': {
             collection['id']: introspect_collection(client, bid, collection['id'], full=full)
