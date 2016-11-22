@@ -31,6 +31,9 @@ def main():
     cli_utils.add_parser_options(subparser,
                                  include_bucket=False,
                                  include_collection=False)
+    subparser.add_argument('--full',
+                           help='Full output',
+                           action='store_true')
 
     # Parse CLI args.
     args = parser.parse_args()
@@ -41,8 +44,8 @@ def main():
 
     # Run chosen subcommand.
     if args.which == 'dump':
-        logger.debug("Start introspection...")
-        result = introspect_server(client)
+        logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
+        result = introspect_server(client, full=args.full)
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
         if hasattr(yaml_result, 'decode'):
             yaml_result = yaml_result.decode('utf8')
@@ -52,5 +55,5 @@ def main():
         logger.debug("Start initialization...")
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
-            config = yaml.load(f)
+            config = yaml.safe_load(f)
             initialize_server(client, config)

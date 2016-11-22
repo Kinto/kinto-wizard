@@ -6,16 +6,16 @@ def _sorted_principals(permissions):
     return {perm: sorted(principals) for perm, principals in permissions.items()}
 
 
-def introspect_server(client):
+def introspect_server(client, full=False):
     logger.info("Fetch buckets list.")
     buckets = client.get_buckets()
     return {
-        bucket['id']: introspect_bucket(client, bucket['id'])
+        bucket['id']: introspect_bucket(client, bucket['id'], full=full)
         for bucket in buckets
     }
 
 
-def introspect_bucket(client, bid):
+def introspect_bucket(client, bid, full=False):
     logger.info("Fetch information of bucket {!r}".format(bid))
     try:
         bucket = client.get_bucket(bucket=bid)
@@ -30,31 +30,40 @@ def introspect_bucket(client, bid):
 
     collections = client.get_collections(bucket=bid)
     groups = client.get_groups(bucket=bid)
-    return {
+    result= {
         'permissions': _sorted_principals(permissions),
         'collections': {
-            collection['id']: introspect_collection(client, bid, collection['id'])
+            collection['id']: introspect_collection(client, bid, collection['id'], full=full)
             for collection in collections
         },
         'groups': {
-            group['id']: introspect_group(client, bid, group['id'])
+            group['id']: introspect_group(client, bid, group['id'], full=full)
             for group in groups
         }
     }
+    if full:
+        result['data'] = bucket['data']
+    return result
 
 
-def introspect_collection(client, bid, cid):
+def introspect_collection(client, bid, cid, full=False):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = client.get_collection(bucket=bid, collection=cid)
-    return {
+    result = {
         'permissions': _sorted_principals(collection['permissions']),
     }
+    if full:
+        result['data'] = collection['data']
+    return result
 
 
-def introspect_group(client, bid, gid):
+def introspect_group(client, bid, gid, full=False):
     logger.info("Fetch information of group {!r}/{!r}".format(bid, gid))
     group = client.get_group(bucket=bid, group=gid)
-    return {
-        'data': {'members': sorted(group['data']['members'])},
+    result = {
         'permissions': _sorted_principals(group['permissions'])
     }
+    data = group['data'] if full else {}
+    data['members'] = sorted(group['data']['members'])
+    result['data'] = data
+    return result
