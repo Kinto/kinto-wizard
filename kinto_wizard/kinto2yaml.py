@@ -2,6 +2,10 @@ from kinto_http import exceptions as kinto_exceptions
 from .logger import logger
 
 
+def _sorted_principals(permissions):
+    return {perm: sorted(principals) for perm, principals in permissions.items()}
+
+
 def introspect_server(client):
     logger.info("Fetch buckets list.")
     buckets = client.get_buckets()
@@ -27,7 +31,7 @@ def introspect_bucket(client, bid):
     collections = client.get_collections(bucket=bid)
     groups = client.get_groups(bucket=bid)
     return {
-        'permissions': permissions,
+        'permissions': _sorted_principals(permissions),
         'collections': {
             collection['id']: introspect_collection(client, bid, collection['id'])
             for collection in collections
@@ -43,7 +47,7 @@ def introspect_collection(client, bid, cid):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = client.get_collection(bucket=bid, collection=cid)
     return {
-        'permissions': collection['permissions'],
+        'permissions': _sorted_principals(collection['permissions']),
     }
 
 
@@ -51,6 +55,6 @@ def introspect_group(client, bid, gid):
     logger.info("Fetch information of group {!r}/{!r}".format(bid, gid))
     group = client.get_group(bucket=bid, group=gid)
     return {
-        'data': {'members': group['data']['members']},
-        'permissions': group['permissions']
+        'data': {'members': sorted(group['data']['members'])},
+        'permissions': _sorted_principals(group['permissions'])
     }
