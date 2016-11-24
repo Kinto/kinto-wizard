@@ -47,3 +47,20 @@ class RoundTrip(unittest.TestCase):
         # Check that identical to original file.
         generated = output.getvalue()
         assert self.original == generated
+
+    def test_full_dump(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
+        cmd = 'kinto-wizard {} --server={} --auth={} --full'
+        load_cmd = cmd.format("dump", self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        output = io.StringIO()
+        with redirect_stdout(output):
+            main()
+        output.flush()
+        assert 'last_modified' in output.getvalue()
