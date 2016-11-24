@@ -49,6 +49,13 @@ class RoundTrip(unittest.TestCase):
         assert self.original == generated
 
     def test_full_dump(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
         cmd = 'kinto-wizard {} --server={} --auth={} --full'
         load_cmd = cmd.format("dump", self.server, self.auth)
         sys.argv = load_cmd.split(" ")
