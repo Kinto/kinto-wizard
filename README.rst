@@ -1,6 +1,15 @@
 kinto-wizard
 ============
 
+|pypi| |ci| |coverage|
+
+.. |pypi| image:: https://img.shields.io/pypi/v/kinto-wizard.svg
+    :target: https://pypi.python.org/pypi/kinto-wizard
+.. |ci| image:: https://travis-ci.org/Kinto/kinto-wizard.svg?branch=master
+    :target: https://travis-ci.org/Kinto/kinto-wizard
+.. |coverage| image:: https://coveralls.io/repos/github/Kinto/kinto-wizard/badge.svg?branch=master
+    :target: https://coveralls.io/github/Kinto/kinto-wizard?branch=master
+
 kinto-wizard is a tool that lets you setup an entire Kinto server from
 a Yaml file, or inspect an existing server and output a Yaml file.
 
