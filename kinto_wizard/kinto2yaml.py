@@ -25,8 +25,7 @@ def introspect_bucket(client, bid, full=False):
 
     permissions = bucket.get('permissions', {})
     if len(permissions) == 0:
-        error_msg = 'Could not read permissions of bucket {!r}'.format(bid)
-        raise kinto_exceptions.KintoException(error_msg)
+        logger.warn('Could not read permissions of bucket {!r}'.format(bid))
 
     collections = client.get_collections(bucket=bid)
     groups = client.get_groups(bucket=bid)
