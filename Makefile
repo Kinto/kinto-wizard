@@ -31,13 +31,13 @@ $(PYTHON):
 	$(VIRTUALENV) $(VENV)
 
 migrate:
-	$(VENV)/bin/kinto --ini $(SERVER_CONFIG) migrate
+	$(VENV)/bin/kinto migrate --ini $(SERVER_CONFIG)
 
 $(SERVER_CONFIG):
-	$(VENV)/bin/kinto --ini $(SERVER_CONFIG) init --backend=memory
+	$(VENV)/bin/kinto init --ini $(SERVER_CONFIG) --backend=memory
 
 runkinto: install-kinto $(SERVER_CONFIG) migrate
-	$(VENV)/bin/kinto --ini $(SERVER_CONFIG) start
+	$(VENV)/bin/kinto start --ini $(SERVER_CONFIG)
 
 build-requirements:
 	$(VIRTUALENV) $(TEMPDIR)
