@@ -6,7 +6,7 @@ This document describes changes between each past release.
 1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Just warn instead of raise exception when can't read bucket permissions.
 
 
 1.0.0 (2016-11-22)
