@@ -18,7 +18,7 @@ def introspect_server(client, full=False):
 def introspect_bucket(client, bid, full=False):
     logger.info("Fetch information of bucket {!r}".format(bid))
     try:
-        bucket = client.get_bucket(bucket=bid)
+        bucket = client.get_bucket(id=bid)
     except kinto_exceptions.BucketNotFound:
         logger.error("Could not read bucket {!r}".format(bid))
         return None
@@ -47,7 +47,7 @@ def introspect_bucket(client, bid, full=False):
 
 def introspect_collection(client, bid, cid, full=False):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
-    collection = client.get_collection(bucket=bid, collection=cid)
+    collection = client.get_collection(bucket=bid, id=cid)
     result = {
         'permissions': _sorted_principals(collection['permissions']),
     }
@@ -58,7 +58,7 @@ def introspect_collection(client, bid, cid, full=False):
 
 def introspect_group(client, bid, gid, full=False):
     logger.info("Fetch information of group {!r}/{!r}".format(bid, gid))
-    group = client.get_group(bucket=bid, group=gid)
+    group = client.get_group(bucket=bid, id=gid)
     result = {
         'permissions': _sorted_principals(group['permissions'])
     }

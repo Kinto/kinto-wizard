@@ -3,10 +3,12 @@ Changelog
 
 This document describes changes between each past release.
 
-1.1.0 (unreleased)
+2.0.0 (unreleased)
 ------------------
 
-- Just warn instead of raise exception when can't read bucket permissions.
+**Breaking changes**
+
+- Upgrade to kinto-http 8.0.0 with Python 3.5+ support.
 
 
 1.0.0 (2016-11-22)
