@@ -1,9 +1,9 @@
 language: python
 python: 3.5
 env:
-    - TOX_ENV=py27
-    - TOX_ENV=py34
+    - TOX_ENV=py35
     - TOX_ENV=flake8
+    - TOX_ENV=kinto-master
 install:
     - make install-dev
     - make runkinto &
@@ -11,10 +11,11 @@ script:
     - tox -e $TOX_ENV
 matrix:
   include:
-    - python: 3.5
-      env:
-        - TOX_ENV=kinto-master
-after_success:
+    - python: 3.6
+      env: TOX_ENV=py36
+    - python: 3.6
+      env: TOX_ENV=kinto-master
+fter_success:
     # Report coverage results to coveralls.io
     - pip install coveralls
     - coveralls
