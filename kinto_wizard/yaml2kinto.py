@@ -39,7 +39,7 @@ def initialize_server(client, config):
                                        data=bucket_data,
                                        permissions=bucket_permissions)
 
-            # 1.1 For each group, patch it if needed
+            # 2.1 For each group, patch it if needed
             for group_id, group_info in bucket_groups.items():
                 group_exists = bucket_exists and group_id in bucket_current_groups
                 group_data = group_info.get('data', {})
@@ -62,11 +62,11 @@ def initialize_server(client, config):
                                           data=group_data,
                                           permissions=group_permissions)
 
-            # 1.2 For each collection patch it if mandatory
-            for collection_id, collection_info in bucket_collections.items():
+            # 2.2 For each collection patch it if mandatory
+            for collection_id, collection in bucket_collections.items():
                 collection_exists = bucket_exists and collection_id in bucket_current_collections
-                collection_data = collection_info.get('data', {})
-                collection_permissions = collection_info.get('permissions', {})
+                collection_data = collection.get('data', {})
+                collection_permissions = collection.get('permissions', {})
 
                 if not collection_exists:
                     batch.create_collection(id=collection_id,
