@@ -113,6 +113,5 @@ def initialize_server(client, config):
                                            data=record_data,
                                            permissions=record_permissions)
 
-
         logger.debug('Sending batch:\n\n%s' % batch.session.requests)
     logger.info("Batch uploaded")
