@@ -22,7 +22,7 @@ import requests
 from kinto_wizard.__main__ import main
 
 
-class RoundTrip(unittest.TestCase):
+class SimpleDump(unittest.TestCase):
     def setUp(self):
         self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
         self.auth = os.getenv("AUTH", "user:pass")
@@ -48,7 +48,16 @@ class RoundTrip(unittest.TestCase):
         generated = output.getvalue()
         assert self.original == generated
 
-    def test_full_dump(self):
+
+class FullDump(unittest.TestCase):
+    def setUp(self):
+        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+        self.auth = os.getenv("AUTH", "user:pass")
+        self.file = os.getenv("FILE", "tests/kinto-full.yaml")
+        self.original = open(self.file).read()
+        requests.post(self.server + "/__flush__")
+
+    def test_round_trip(self):
         # Load some data
         cmd = 'kinto-wizard {} --server={} --auth={}'
         load_cmd = cmd.format("load {}".format(self.file),
@@ -63,4 +72,7 @@ class RoundTrip(unittest.TestCase):
         with redirect_stdout(output):
             main()
         output.flush()
-        assert 'last_modified' in output.getvalue()
+
+        # Check that identical to original file.
+        generated = output.getvalue()
+        assert self.original == generated
