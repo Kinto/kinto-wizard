@@ -98,20 +98,12 @@ def initialize_server(client, config):
                     record_data = record.get('data', {})
                     record_permissions = record.get('permissions', None)
 
-                    if not record_exists:
-                        batch.create_record(id=record_id,
-                                            bucket=bucket_id,
-                                            collection=collection_id,
-                                            data=record_data,
-                                            permissions=record_permissions)
-                    else:
-                        # XXX: since above server inspection is not full, no
-                        # way to compare if there are changes in data or perms.
-                        batch.patch_record(id=record_id,
-                                           bucket=bucket_id,
-                                           collection=collection_id,
-                                           data=record_data,
-                                           permissions=record_permissions)
+                    batch.update_record(id=record_id,
+                                        bucket=bucket_id,
+                                        collection=collection_id,
+                                        data=record_data,
+                                        permissions=record_permissions,
+                                        safe=record_exists)
 
         logger.debug('Sending batch:\n\n%s' % batch.session.requests)
     logger.info("Batch uploaded")
