@@ -62,3 +62,6 @@ Dump
         --server https://kinto-writer.stage.mozaws.net/v1 \
         --auth admin:credentials \
         > current-config.yml
+
+The dump also accepts a ``--full`` option that will output object data and collection
+records.

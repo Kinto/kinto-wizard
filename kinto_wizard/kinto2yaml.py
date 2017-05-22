@@ -53,6 +53,14 @@ def introspect_collection(client, bid, cid, full=False):
     }
     if full:
         result['data'] = collection['data']
+
+        # If full, include records.
+        records = client.get_records(bucket=bid, collection=cid)
+        result['records'] = {
+            # XXX: we don't show permissions, until we have a way to fetch records
+            # in batch (see Kinto/kinto-http.py#145)
+            record['id']: {"data": record, "permissions": {}} for record in records
+        }
     return result
 
 

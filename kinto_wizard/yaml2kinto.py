@@ -39,7 +39,7 @@ def initialize_server(client, config):
                                        data=bucket_data,
                                        permissions=bucket_permissions)
 
-            # 1.1 For each group, patch it if needed
+            # 2.1 For each group, patch it if needed
             for group_id, group_info in bucket_groups.items():
                 group_exists = bucket_exists and group_id in bucket_current_groups
                 group_data = group_info.get('data', {})
@@ -62,11 +62,11 @@ def initialize_server(client, config):
                                           data=group_data,
                                           permissions=group_permissions)
 
-            # 1.2 For each collection patch it if mandatory
-            for collection_id, collection_info in bucket_collections.items():
+            # 2.2 For each collection patch it if mandatory
+            for collection_id, collection in bucket_collections.items():
                 collection_exists = bucket_exists and collection_id in bucket_current_collections
-                collection_data = collection_info.get('data', {})
-                collection_permissions = collection_info.get('permissions', {})
+                collection_data = collection.get('data', {})
+                collection_permissions = collection.get('permissions', {})
 
                 if not collection_exists:
                     batch.create_collection(id=collection_id,
@@ -84,5 +84,26 @@ def initialize_server(client, config):
                                                bucket=bucket_id,
                                                data=collection_data,
                                                permissions=collection_permissions)
+
+                # 2.2.1 For each collection, create its records.
+                collection_records = collection.get('records', {})
+                existing_records_ids = set()
+                if collection_exists:
+                    existing_records = client.get_records(bucket=bucket_id,
+                                                          collection=collection_id,
+                                                          **{"_fields": "id"})
+                    existing_records_ids = set([r["id"] for r in existing_records])
+                for record_id, record in collection_records.items():
+                    record_exists = record_id in existing_records_ids
+                    record_data = record.get('data', {})
+                    record_permissions = record.get('permissions', None)
+
+                    batch.update_record(id=record_id,
+                                        bucket=bucket_id,
+                                        collection=collection_id,
+                                        data=record_data,
+                                        permissions=record_permissions,
+                                        safe=record_exists)
+
         logger.debug('Sending batch:\n\n%s' % batch.session.requests)
     logger.info("Batch uploaded")
