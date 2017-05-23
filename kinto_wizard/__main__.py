@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+import logging
 
 from ruamel import yaml
 from kinto_http import cli_utils
@@ -38,6 +39,8 @@ def main():
     # Parse CLI args.
     args = parser.parse_args()
     cli_utils.setup_logger(logger, args)
+    kinto_logger = logging.getLogger('kinto_http')
+    cli_utils.setup_logger(kinto_logger, args)
 
     logger.debug("Instantiate Kinto client.")
     client = cli_utils.create_client_from_args(args)
