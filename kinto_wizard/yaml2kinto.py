@@ -87,23 +87,32 @@ def initialize_server(client, config):
 
                 # 2.2.1 For each collection, create its records.
                 collection_records = collection.get('records', {})
-                existing_records_ids = set()
-                if collection_exists:
-                    existing_records = client.get_records(bucket=bucket_id,
-                                                          collection=collection_id,
-                                                          **{"_fields": "id"})
-                    existing_records_ids = set([r["id"] for r in existing_records])
                 for record_id, record in collection_records.items():
-                    record_exists = record_id in existing_records_ids
+                    record_exists = (collection_exists and
+                                     record_id in current_collection['records'])
                     record_data = record.get('data', {})
                     record_permissions = record.get('permissions', None)
 
-                    batch.update_record(id=record_id,
-                                        bucket=bucket_id,
-                                        collection=collection_id,
-                                        data=record_data,
-                                        permissions=record_permissions,
-                                        safe=record_exists)
+                    if not record_exists:
+                        batch.create_record(id=record_id,
+                                            bucket=bucket_id,
+                                            collection=collection_id,
+                                            data=record_data,
+                                            permissions=record_permissions)
+                    else:
+                        current_record = current_collection['records'][record_id]
+                        current_record_data = current_record.get('data', {})
+                        # XXX: we don't show permissions, until we have a way to fetch records
+                        # in batch (see Kinto/kinto-http.py#145)
+                        current_record_permissions = current_record.get('permissions', {})
+
+                        if (current_record_data != record_data or
+                                current_record_permissions != record_permissions):
+                            batch.update_record(id=record_id,
+                                                bucket=bucket_id,
+                                                collection=collection_id,
+                                                data=record_data,
+                                                permissions=record_permissions)
 
         logger.debug('Sending batch:\n\n%s' % batch.session.requests)
     logger.info("Batch uploaded")
