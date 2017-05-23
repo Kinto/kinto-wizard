@@ -6,7 +6,7 @@ This document describes changes between each past release.
 2.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add logger configuration for kinto-http.py (#26)
 
 
 2.0.0 (2017-05-22)
