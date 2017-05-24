@@ -53,8 +53,6 @@ def main():
         logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
         result = introspect_server(client, full=args.full)
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
-        if hasattr(yaml_result, 'decode'):
-            yaml_result = yaml_result.decode('utf8')
         print(yaml_result, end=u'')
 
     elif args.which == 'load':

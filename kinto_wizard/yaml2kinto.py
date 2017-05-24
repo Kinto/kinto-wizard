@@ -96,7 +96,7 @@ def initialize_server(client, config, force=False):
                 collection_records = collection.get('records', {})
                 for record_id, record in collection_records.items():
                     record_exists = (collection_exists and
-                                     record_id in current_collection['records'])
+                                     record_id in current_collection.get('records', {}))
                     record_data = record.get('data', {})
                     record_permissions = record.get('permissions', None)
 
