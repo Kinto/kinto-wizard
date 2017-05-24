@@ -25,6 +25,9 @@ def main():
                                  include_bucket=False,
                                  include_collection=False)
     subparser.add_argument(dest='filepath', help='YAML file')
+    subparser.add_argument('--force',
+                           help='Load the file using the CLIENT_WINS conflict resolution strategy',
+                           action='store_true')
 
     # dump sub-command.
     subparser = subparsers.add_parser('dump')
@@ -59,4 +62,4 @@ def main():
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            initialize_server(client, config)
+            initialize_server(client, config, force=args.force)
