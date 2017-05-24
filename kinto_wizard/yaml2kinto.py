@@ -3,10 +3,14 @@ from .logger import logger
 from .kinto2yaml import introspect_server
 
 
-def initialize_server(client, config):
+def initialize_server(client, config, force=False):
     logger.debug("Converting YAML config into a server batch.")
     # 1. Introspect current server state.
-    current_server_status = introspect_server(client)
+    if not force:
+        current_server_status = introspect_server(client)
+    else:
+        # We don't need to load it because we will override it nevertheless.
+        current_server_status = {}
     # 2. For each bucket
     with client.batch() as batch:
         for bucket_id, bucket in config.items():
@@ -23,7 +27,8 @@ def initialize_server(client, config):
                 # Create the bucket if not present in the introspection
                 batch.create_bucket(id=bucket_id,
                                     data=bucket_data,
-                                    permissions=bucket_permissions)
+                                    permissions=bucket_permissions,
+                                    safe=(not force))
             else:
                 bucket_current_groups = current_server_status[bucket_id]['groups']
                 bucket_current_collections = current_server_status[bucket_id]['collections']
@@ -49,7 +54,8 @@ def initialize_server(client, config):
                     batch.create_group(id=group_id,
                                        bucket=bucket_id,
                                        data=group_data,
-                                       permissions=group_permissions)
+                                       permissions=group_permissions,
+                                       safe=(not force))
                 else:
                     current_group = bucket_current_groups[group_id]
                     current_group_data = current_group.get('data', {})
@@ -72,7 +78,8 @@ def initialize_server(client, config):
                     batch.create_collection(id=collection_id,
                                             bucket=bucket_id,
                                             data=collection_data,
-                                            permissions=collection_permissions)
+                                            permissions=collection_permissions,
+                                            safe=(not force))
                 else:
                     current_collection = bucket_current_collections[collection_id]
                     current_collection_data = current_collection.get('data', {})
@@ -89,7 +96,7 @@ def initialize_server(client, config):
                 collection_records = collection.get('records', {})
                 for record_id, record in collection_records.items():
                     record_exists = (collection_exists and
-                                     record_id in current_collection['records'])
+                                     record_id in current_collection.get('records', {}))
                     record_data = record.get('data', {})
                     record_permissions = record.get('permissions', None)
 
@@ -98,7 +105,8 @@ def initialize_server(client, config):
                                             bucket=bucket_id,
                                             collection=collection_id,
                                             data=record_data,
-                                            permissions=record_permissions)
+                                            permissions=record_permissions,
+                                            safe=(not force))
                     else:
                         current_record = current_collection['records'][record_id]
                         current_record_data = current_record.get('data', {})

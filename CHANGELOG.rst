@@ -6,7 +6,10 @@ This document describes changes between each past release.
 2.1.0 (unreleased)
 ------------------
 
+**New features**
+
 - Add logger configuration for kinto-http.py (#26)
+- Add an option to force the update with a CLIENT_WINS strategy (#28)
 
 
 2.0.0 (2017-05-22)
