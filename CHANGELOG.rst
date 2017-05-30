@@ -10,6 +10,7 @@ This document describes changes between each past release.
 
 - Add logger configuration for kinto-http.py (#26)
 - Add an option to force the update with a CLIENT_WINS strategy (#28)
+- Add an option to select the bucket or collection to export (#30)
 
 
 2.0.0 (2017-05-22)
