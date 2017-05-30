@@ -37,8 +37,7 @@ def introspect_bucket(client, bid, collection=None, full=False):
     if collection:
         result = {
             'permissions': _sorted_principals(permissions),
-            'collections': {collection: introspect_collection(client, bid, collection, full=full)},
-            'groups': {}
+            'collections': {collection: introspect_collection(client, bid, collection, full=full)}
         }
     else:
         collections = client.get_collections(bucket=bid)

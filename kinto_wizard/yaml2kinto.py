@@ -18,7 +18,7 @@ def initialize_server(client, config, bucket=None, collection=None, force=False)
         for bucket_id, bucket in config.items():
             # Skip buckets that we don't want to import.
             if bid and bucket_id != bid:
-                logger.debug("Skip bucket {}".format(bid))
+                logger.debug("Skip bucket {}".format(bucket_id))
                 continue
 
             bucket_exists = bucket_id in current_server_status
@@ -85,7 +85,7 @@ def initialize_server(client, config, bucket=None, collection=None, force=False)
             for collection_id, collection in bucket_collections.items():
                 # Skip collections that we don't want to import.
                 if cid and collection_id != cid:
-                    logger.debug("Skip collection {}/{}".format(bid, cid))
+                    logger.debug("Skip collection {}/{}".format(bucket_id, collection_id))
                     continue
                 collection_exists = bucket_exists and collection_id in bucket_current_collections
                 collection_data = collection.get('data', {})

@@ -16,6 +16,7 @@ natim:
   data:
     id: natim
     last_modified: 1496132446213
+  groups: {}
   permissions:
     write:
     - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
@@ -37,6 +38,7 @@ natim2:
   data:
     id: natim2
     last_modified: 1496132453519
+  groups: {}
   permissions:
     write:
     - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4

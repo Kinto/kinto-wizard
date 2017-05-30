@@ -97,15 +97,30 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         self.file = os.getenv("FILE", "tests/dumps/dump-full.yaml")
         requests.post(self.server + "/__flush__")
 
-    def test_round_trip_with_bucket_selection_on_load(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={} --bucket natim'
+    def load(self, bucket=None, collection=None):
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+
+        if bucket:
+            cmd += ' --bucket={}'.format(bucket)
+
+        if collection:
+            cmd += ' --collection={}'.format(collection)
+
         load_cmd = cmd.format("load {}".format(self.file),
                               self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
+    def assert_dump_matches(self, filename, bucket=None, collection=None):
+        cmd = 'kinto-wizard {} --server={} --auth={}'
         dump_cmd = cmd.format("dump --full", self.server, self.auth)
+
+        if bucket:
+            dump_cmd += ' --bucket={}'.format(bucket)
+
+        if collection:
+            dump_cmd += ' --collection={}'.format(collection)
+
         sys.argv = dump_cmd.split(" ")
         output = io.StringIO()
         with redirect_stdout(output):
@@ -114,107 +129,30 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
 
         # Check that identical to original file.
         generated = output.getvalue()
-        with open("tests/dumps/dump-natim.yaml") as f:
+        with open(filename) as f:
             assert f.read() == generated
+
+    def test_round_trip_with_bucket_selection_on_load(self):
+        self.load(bucket="natim")
+        self.assert_dump_matches("tests/dumps/dump-natim.yaml")
 
     def test_round_trip_with_bucket_selection(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
-
-        dump_cmd = cmd.format("dump --full --bucket natim", self.server, self.auth)
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        generated = output.getvalue()
-        with open("tests/dumps/dump-natim.yaml") as f:
-            assert f.read() == generated
+        self.load()
+        self.assert_dump_matches("tests/dumps/dump-natim.yaml", bucket="natim")
 
     def test_round_trip_with_bucket_collection_selection_on_load(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={} --bucket natim --collection toto'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
-
-        dump_cmd = cmd.format("dump --full", self.server, self.auth)
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        generated = output.getvalue()
-        with open("tests/dumps/dump-natim.yaml") as f:
-            assert f.read() == generated
+        self.load(bucket="natim", collection="toto")
+        self.assert_dump_matches("tests/dumps/dump-natim-toto-groups.yaml")
 
     def test_round_trip_with_bucket_collection_selection(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
-
-        dump_cmd = cmd.format("dump --full --bucket natim --collection toto",
-                              self.server, self.auth)
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        generated = output.getvalue()
-        with open("tests/dumps/dump-natim.yaml") as f:
-            assert f.read() == generated
+        self.load()
+        self.assert_dump_matches("tests/dumps/dump-natim-toto.yaml",
+                                 bucket="natim", collection="toto")
 
     def test_round_trip_with_collection_selection_on_load(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={} --collection toto'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
-
-        dump_cmd = cmd.format("dump --full", self.server, self.auth)
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        generated = output.getvalue()
-        with open("tests/dumps/dump-toto.yaml") as f:
-            assert f.read() == generated
+        self.load(collection="toto")
+        self.assert_dump_matches("tests/dumps/dump-toto-groups.yaml")
 
     def test_round_trip_with_collection_selection(self):
-        # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
-
-        dump_cmd = cmd.format("dump --full --collection toto",
-                              self.server, self.auth)
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        generated = output.getvalue()
-        with open("tests/dumps/dump-toto.yaml") as f:
-            assert f.read() == generated
+        self.load()
+        self.assert_dump_matches("tests/dumps/dump-toto.yaml", collection="toto")
