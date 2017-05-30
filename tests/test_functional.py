@@ -111,7 +111,7 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         sys.argv = load_cmd.split(" ")
         main()
 
-    def assert_dump_matches(self, filename, bucket=None, collection=None):
+    def dump(self, bucket=None, collection=None):
         cmd = 'kinto-wizard {} --server={} --auth={}'
         dump_cmd = cmd.format("dump --full", self.server, self.auth)
 
@@ -128,31 +128,40 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         output.flush()
 
         # Check that identical to original file.
-        generated = output.getvalue()
-        with open(filename) as f:
-            assert f.read() == generated
+        return output.getvalue()
 
     def test_round_trip_with_bucket_selection_on_load(self):
         self.load(bucket="natim")
-        self.assert_dump_matches("tests/dumps/dump-natim.yaml")
+        generated = self.dump()
+        with open("tests/dumps/dump-natim.yaml") as f:
+            assert f.read() == generated
 
     def test_round_trip_with_bucket_selection(self):
         self.load()
-        self.assert_dump_matches("tests/dumps/dump-natim.yaml", bucket="natim")
+        generated = self.dump(bucket="natim")
+        with open("tests/dumps/dump-natim.yaml") as f:
+            assert f.read() == generated
 
     def test_round_trip_with_bucket_collection_selection_on_load(self):
         self.load(bucket="natim", collection="toto")
-        self.assert_dump_matches("tests/dumps/dump-natim-toto-groups.yaml")
+        generated = self.dump()
+        with open("tests/dumps/dump-natim-toto-groups.yaml") as f:
+            assert f.read() == generated
 
     def test_round_trip_with_bucket_collection_selection(self):
         self.load()
-        self.assert_dump_matches("tests/dumps/dump-natim-toto.yaml",
-                                 bucket="natim", collection="toto")
+        generated = self.dump(bucket="natim", collection="toto")
+        with open("tests/dumps/dump-natim-toto.yaml") as f:
+            assert f.read() == generated
 
     def test_round_trip_with_collection_selection_on_load(self):
         self.load(collection="toto")
-        self.assert_dump_matches("tests/dumps/dump-toto-groups.yaml")
+        generated = self.dump()
+        with open("tests/dumps/dump-toto-groups.yaml") as f:
+            assert f.read() == generated
 
     def test_round_trip_with_collection_selection(self):
         self.load()
-        self.assert_dump_matches("tests/dumps/dump-toto.yaml", collection="toto")
+        generated = self.dump(collection="toto")
+        with open("tests/dumps/dump-toto.yaml") as f:
+            assert f.read() == generated
