@@ -6,16 +6,23 @@ def _sorted_principals(permissions):
     return {perm: sorted(principals) for perm, principals in permissions.items()}
 
 
-def introspect_server(client, full=False):
+def introspect_server(client, bucket=None, collection=None, full=False):
+    if bucket:
+        logger.info("Only inspect bucket `{}`.".format(bucket))
+        bucket_info = introspect_bucket(client, bucket, collection=collection, full=full)
+        if bucket_info:
+            return {bucket: bucket_info}
+        return {}
+
     logger.info("Fetch buckets list.")
     buckets = client.get_buckets()
     return {
-        bucket['id']: introspect_bucket(client, bucket['id'], full=full)
+        bucket['id']: introspect_bucket(client, bucket['id'], collection=collection, full=full)
         for bucket in buckets
     }
 
 
-def introspect_bucket(client, bid, full=False):
+def introspect_bucket(client, bid, collection=None, full=False):
     logger.info("Fetch information of bucket {!r}".format(bid))
     try:
         bucket = client.get_bucket(id=bid)
@@ -27,19 +34,25 @@ def introspect_bucket(client, bid, full=False):
     if len(permissions) == 0:
         logger.warn('Could not read permissions of bucket {!r}'.format(bid))
 
-    collections = client.get_collections(bucket=bid)
-    groups = client.get_groups(bucket=bid)
-    result = {
-        'permissions': _sorted_principals(permissions),
-        'collections': {
-            collection['id']: introspect_collection(client, bid, collection['id'], full=full)
-            for collection in collections
-        },
-        'groups': {
-            group['id']: introspect_group(client, bid, group['id'], full=full)
-            for group in groups
+    if collection:
+        result = {
+            'permissions': _sorted_principals(permissions),
+            'collections': {collection: introspect_collection(client, bid, collection, full=full)}
         }
-    }
+    else:
+        collections = client.get_collections(bucket=bid)
+        groups = client.get_groups(bucket=bid)
+        result = {
+            'permissions': _sorted_principals(permissions),
+            'collections': {
+                collection['id']: introspect_collection(client, bid, collection['id'], full=full)
+                for collection in collections
+            },
+            'groups': {
+                group['id']: introspect_group(client, bid, group['id'], full=full)
+                for group in groups
+            }
+        }
     if full:
         result['data'] = bucket['data']
     return result

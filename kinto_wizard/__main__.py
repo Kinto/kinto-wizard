@@ -21,9 +21,7 @@ def main():
     # load sub-command.
     subparser = subparsers.add_parser('load')
     subparser.set_defaults(which='load')
-    cli_utils.add_parser_options(subparser,
-                                 include_bucket=False,
-                                 include_collection=False)
+    cli_utils.add_parser_options(subparser)
     subparser.add_argument(dest='filepath', help='YAML file')
     subparser.add_argument('--force',
                            help='Load the file using the CLIENT_WINS conflict resolution strategy',
@@ -32,9 +30,7 @@ def main():
     # dump sub-command.
     subparser = subparsers.add_parser('dump')
     subparser.set_defaults(which='dump')
-    cli_utils.add_parser_options(subparser,
-                                 include_bucket=False,
-                                 include_collection=False)
+    cli_utils.add_parser_options(subparser)
     subparser.add_argument('--full',
                            help='Full output',
                            action='store_true')
@@ -51,7 +47,8 @@ def main():
     # Run chosen subcommand.
     if args.which == 'dump':
         logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
-        result = introspect_server(client, full=args.full)
+        result = introspect_server(client, bucket=args.bucket, collection=args.collection,
+                                   full=args.full)
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
         print(yaml_result, end=u'')
 
@@ -60,4 +57,5 @@ def main():
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            initialize_server(client, config, force=args.force)
+            initialize_server(client, config, bucket=args.bucket, collection=args.collection,
+                              force=args.force)

@@ -3,17 +3,24 @@ from .logger import logger
 from .kinto2yaml import introspect_server
 
 
-def initialize_server(client, config, force=False):
+def initialize_server(client, config, bucket=None, collection=None, force=False):
     logger.debug("Converting YAML config into a server batch.")
+    bid = bucket
+    cid = collection
     # 1. Introspect current server state.
     if not force:
-        current_server_status = introspect_server(client)
+        current_server_status = introspect_server(client, bucket=bucket, collection=collection)
     else:
         # We don't need to load it because we will override it nevertheless.
         current_server_status = {}
     # 2. For each bucket
     with client.batch() as batch:
         for bucket_id, bucket in config.items():
+            # Skip buckets that we don't want to import.
+            if bid and bucket_id != bid:
+                logger.debug("Skip bucket {}".format(bucket_id))
+                continue
+
             bucket_exists = bucket_id in current_server_status
             bucket_data = bucket.get('data', {})
             bucket_permissions = bucket.get('permissions', {})
@@ -30,13 +37,19 @@ def initialize_server(client, config, force=False):
                                     permissions=bucket_permissions,
                                     safe=(not force))
             else:
-                bucket_current_groups = current_server_status[bucket_id]['groups']
-                bucket_current_collections = current_server_status[bucket_id]['collections']
-
-                # Patch the bucket if mandatory
                 current_bucket = current_server_status[bucket_id]
-                current_bucket_data = current_bucket.get('data', {})
-                current_bucket_permissions = current_bucket.get('permissions', {})
+                bucket_current_groups = {}
+                bucket_current_collections = {}
+                current_bucket_data = {}
+                current_bucket_permissions = {}
+
+                if current_bucket:
+                    bucket_current_groups = current_bucket.get('groups', {})
+                    bucket_current_collections = current_bucket.get('collections', {})
+
+                    # Patch the bucket if mandatory
+                    current_bucket_data = current_bucket.get('data', {})
+                    current_bucket_permissions = current_bucket.get('permissions', {})
 
                 if (current_bucket_data != bucket_data or
                         current_bucket_permissions != bucket_permissions):
@@ -70,6 +83,10 @@ def initialize_server(client, config, force=False):
 
             # 2.2 For each collection patch it if mandatory
             for collection_id, collection in bucket_collections.items():
+                # Skip collections that we don't want to import.
+                if cid and collection_id != cid:
+                    logger.debug("Skip collection {}/{}".format(bucket_id, collection_id))
+                    continue
                 collection_exists = bucket_exists and collection_id in bucket_current_collections
                 collection_data = collection.get('data', {})
                 collection_permissions = collection.get('permissions', {})
