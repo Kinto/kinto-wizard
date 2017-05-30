@@ -47,8 +47,8 @@ def main():
     # Run chosen subcommand.
     if args.which == 'dump':
         logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
-        result = introspect_server(client,
-                                   bucket=args.bucket, collection=args.collection, full=args.full)
+        result = introspect_server(client, bucket=args.bucket, collection=args.collection,
+                                   full=args.full)
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
         print(yaml_result, end=u'')
 
@@ -57,5 +57,5 @@ def main():
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            initialize_server(client, config,
-                              bucket=args.bucket, collection=args.collection, force=args.force)
+            initialize_server(client, config, bucket=args.bucket, collection=args.collection,
+                              force=args.force)
