@@ -78,7 +78,7 @@ class FullDump(unittest.TestCase):
         client.update_record(bucket='build-hub', collection='archives',
                              id='0831d549-0a69-48dd-b240-feef94688d47', data={})
         record = client.get_record(bucket='build-hub', collection='archives',
-                             id='0831d549-0a69-48dd-b240-feef94688d47')
+                                   id='0831d549-0a69-48dd-b240-feef94688d47')
         assert set(record['data'].keys()) == {'id', 'last_modified'}
         cmd = 'kinto-wizard {} --server={} -D --auth={} --force'
         load_cmd = cmd.format("load {}".format(self.file),
@@ -86,5 +86,5 @@ class FullDump(unittest.TestCase):
         sys.argv = load_cmd.split(" ")
         main()
         record = client.get_record(bucket='build-hub', collection='archives',
-                             id='0831d549-0a69-48dd-b240-feef94688d47')
+                                   id='0831d549-0a69-48dd-b240-feef94688d47')
         assert set(record['data'].keys()) != {'id', 'last_modified'}
