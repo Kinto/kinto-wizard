@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import logging
 
-from ruamel import yaml
+from ruamel.yaml import YAML
 from kinto_http import cli_utils
 
 from .logger import logger
@@ -47,15 +47,18 @@ def main():
     # Run chosen subcommand.
     if args.which == 'dump':
         logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
+        yaml = YAML(typ='safe')
+        yaml.default_flow_style = False
         result = introspect_server(client, bucket=args.bucket, collection=args.collection,
                                    full=args.full)
-        yaml_result = yaml.safe_dump(result, default_flow_style=False)
+        yaml_result = yaml.dump(result, default_flow_style=False)
         print(yaml_result, end=u'')
 
     elif args.which == 'load':
         logger.debug("Start initialization...")
         logger.info("Load YAML file {!r}".format(args.filepath))
+        yaml = YAML(typ='safe')
         with open(args.filepath, 'r') as f:
-            config = yaml.safe_load(f)
+            config = yaml.load(f)
             initialize_server(client, config, bucket=args.bucket, collection=args.collection,
                               force=args.force)

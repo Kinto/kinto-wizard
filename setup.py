@@ -17,7 +17,7 @@ CONTRIBUTORS = read_file('CONTRIBUTORS.rst')
 
 REQUIREMENTS = [
     "kinto-http>=8",
-    "ruamel.yaml"
+    "ruamel.yaml>=0.15.5"
 ]
 
 SETUP_REQUIREMENTS = [
