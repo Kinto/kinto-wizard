@@ -1,0 +1,9 @@
+certifi==2017.4.17
+chardet==3.0.4
+idna==2.5
+kinto-http==9.0.1
+requests==2.18.1
+ruamel.yaml==0.15.15
+six==1.10.0
+Unidecode==0.4.21
+urllib3==1.21.1
