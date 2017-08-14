@@ -9,7 +9,11 @@ async def initialize_server(async_client, config, bucket=None, collection=None, 
     cid = collection
     # 1. Introspect current server state.
     if not force:
-        current_server_status = await introspect_server(async_client, bucket=bucket, collection=collection)
+        current_server_status = await introspect_server(
+            async_client,
+            bucket=bucket,
+            collection=collection
+        )
     else:
         # We don't need to load it because we will override it nevertheless.
         current_server_status = {}
