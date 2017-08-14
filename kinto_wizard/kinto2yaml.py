@@ -1,9 +1,26 @@
+import asyncio
 from kinto_http import exceptions as kinto_exceptions
 from .logger import logger
 
 
 def _sorted_principals(permissions):
     return {perm: sorted(principals) for perm, principals in permissions.items()}
+
+
+async def gather_dict(dct):
+    """Utility function to do asyncio.gather for dictionaries
+
+    Do asyncio.gather on the dictionary's values, and return the
+    dictionary with the futures' results replacing the futures.
+
+    >>> promise = Future()
+    >>> promise.set_result("value")
+    >>> await gather_dict({"key": promise})
+    {"key": "value"}
+    """
+    items = dct.items()
+    results = await asyncio.gather(*(item[1] for item in items))
+    return dict(zip((item[0] for item in items), results))
 
 
 async def introspect_server(client, bucket=None, collection=None, full=False):
@@ -16,10 +33,10 @@ async def introspect_server(client, bucket=None, collection=None, full=False):
 
     logger.info("Fetch buckets list.")
     buckets = await client.get_buckets()
-    return {
-        bucket['id']: await introspect_bucket(client, bucket['id'], collection=collection, full=full)
+    return await gather_dict({
+        bucket['id']: introspect_bucket(client, bucket['id'], collection=collection, full=full)
         for bucket in buckets
-    }
+    })
 
 
 async def introspect_bucket(client, bid, collection=None, full=False):
@@ -37,21 +54,30 @@ async def introspect_bucket(client, bid, collection=None, full=False):
     if collection:
         result = {
             'permissions': _sorted_principals(permissions),
-            'collections': {collection: await introspect_collection(client, bid, collection, full=full)}
+            'collections': {
+                collection: await introspect_collection(client, bid, collection, full=full)
+            }
         }
     else:
-        collections = await client.get_collections(bucket=bid)
-        groups = await client.get_groups(bucket=bid)
+        (collections, groups) = await asyncio.gather(
+            client.get_collections(bucket=bid),
+            client.get_groups(bucket=bid)
+        )
+        introspect_collections = gather_dict({
+            collection['id']: introspect_collection(client, bid, collection['id'], full=full)
+            for collection in collections
+        })
+        introspect_groups = gather_dict({
+            group['id']: introspect_group(client, bid, group['id'], full=full)
+            for group in groups
+        })
+        (introspected_collections, introspected_groups) = await asyncio.gather(
+            introspect_collections, introspect_groups
+        )
         result = {
             'permissions': _sorted_principals(permissions),
-            'collections': {
-                collection['id']: await introspect_collection(client, bid, collection['id'], full=full)
-                for collection in collections
-            },
-            'groups': {
-                group['id']: await introspect_group(client, bid, group['id'], full=full)
-                for group in groups
-            }
+            'collections': introspected_collections,
+            'groups': introspected_groups,
         }
     if full:
         result['data'] = bucket['data']
