@@ -3,18 +3,18 @@ from .logger import logger
 from .kinto2yaml import introspect_server
 
 
-def initialize_server(client, config, bucket=None, collection=None, force=False):
+async def initialize_server(async_client, config, bucket=None, collection=None, force=False):
     logger.debug("Converting YAML config into a server batch.")
     bid = bucket
     cid = collection
     # 1. Introspect current server state.
     if not force:
-        current_server_status = introspect_server(client, bucket=bucket, collection=collection)
+        current_server_status = await introspect_server(async_client, bucket=bucket, collection=collection)
     else:
         # We don't need to load it because we will override it nevertheless.
         current_server_status = {}
     # 2. For each bucket
-    with client.batch() as batch:
+    with async_client.batch() as batch:
         for bucket_id, bucket in config.items():
             # Skip buckets that we don't want to import.
             if bid and bucket_id != bid:

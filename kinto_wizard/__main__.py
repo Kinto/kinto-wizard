@@ -1,10 +1,13 @@
 from __future__ import print_function
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import argparse
 import logging
 
 from ruamel import yaml
 from kinto_http import cli_utils
 
+from .async_kinto import AsyncKintoClient
 from .logger import logger
 from .kinto2yaml import introspect_server
 from .yaml2kinto import initialize_server
@@ -44,11 +47,17 @@ def main():
     logger.debug("Instantiate Kinto client.")
     client = cli_utils.create_client_from_args(args)
 
+    thread_pool = ThreadPoolExecutor()
+    event_loop = asyncio.get_event_loop()
+    async_client = AsyncKintoClient(client, event_loop, thread_pool)
+
     # Run chosen subcommand.
     if args.which == 'dump':
         logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
-        result = introspect_server(client, bucket=args.bucket, collection=args.collection,
-                                   full=args.full)
+        result = event_loop.run_until_complete(
+            introspect_server(async_client, bucket=args.bucket, collection=args.collection,
+                              full=args.full)
+        )
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
         print(yaml_result, end=u'')
 
@@ -57,5 +66,12 @@ def main():
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            initialize_server(client, config, bucket=args.bucket, collection=args.collection,
-                              force=args.force)
+            event_loop.run_until_complete(
+                initialize_server(
+                    async_client,
+                    config,
+                    bucket=args.bucket,
+                    collection=args.collection,
+                    force=args.force
+                )
+            )
