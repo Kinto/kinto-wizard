@@ -6,7 +6,9 @@ This document describes changes between each past release.
 2.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New features**
+
+- Use ``asyncio`` to add parallelism to the ``load`` command (#18).
 
 
 2.1.0 (2017-06-28)
