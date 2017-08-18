@@ -60,7 +60,7 @@ def main():
             introspect_server(async_client, bucket=args.bucket, collection=args.collection,
                               full=args.full)
         )
-        yaml_result = yaml.dump(result, default_flow_style=False)
+        yaml_result = yaml.dump(result)
         print(yaml_result, end=u'')
 
     elif args.which == 'load':
