@@ -38,7 +38,7 @@ def main():
                            help='Export buckets, collections and groups data',
                            action='store_true')
     subparser.add_argument('--records',
-                           help='Export collections\' records',
+                           help="Export collections' records",
                            action='store_true')
 
     # Parse CLI args.

@@ -6,8 +6,8 @@ This document describes changes between each past release.
 2.2.0 (unreleased)
 ------------------
 
-- Add ``--data`` and ``--records`` options to be able to load objects
-  data without loading records. (#33)
+- Add ``--data`` and ``--records`` options to be able to dump objects
+  data without dumping records. (#33)
 
 
 2.1.0 (2017-06-28)
