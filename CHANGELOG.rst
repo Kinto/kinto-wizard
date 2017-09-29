@@ -3,11 +3,19 @@ Changelog
 
 This document describes changes between each past release.
 
-2.2.0 (unreleased)
+2.3.0 (unreleased)
 ------------------
 
 - Add ``--data`` and ``--records`` options to be able to dump objects
   data without dumping records. (#33)
+
+
+2.2.0 (2017-09-01)
+------------------
+
+**New features**
+
+- Use ``asyncio`` to add parallelism to the ``load`` command (#18).
 
 
 2.1.0 (2017-06-28)
