@@ -6,7 +6,7 @@ This document describes changes between each past release.
 2.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add ``--data`` and ``--records`` options to be able to load objects data without loading records.
 
 
 2.1.0 (2017-06-28)

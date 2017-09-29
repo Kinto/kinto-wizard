@@ -32,7 +32,13 @@ def main():
     subparser.set_defaults(which='dump')
     cli_utils.add_parser_options(subparser)
     subparser.add_argument('--full',
-                           help='Full output',
+                           help='Full output (same as with both --data and --records options)',
+                           action='store_true')
+    subparser.add_argument('--data',
+                           help='Export buckets, collections and groups data',
+                           action='store_true')
+    subparser.add_argument('--records',
+                           help='Export collections\' records',
                            action='store_true')
 
     # Parse CLI args.
@@ -46,9 +52,18 @@ def main():
 
     # Run chosen subcommand.
     if args.which == 'dump':
-        logger.debug("Start %sintrospection..." % ("full " if args.full else ""))
+        if args.full:
+            data = True
+            records = True
+        else:
+            data = args.data
+            records = args.records
+
+        logger.debug("Start introspection with %s%s%s..." % ("data" if data else "",
+                                                             " and " if data and records else "",
+                                                             "records" if records else ""))
         result = introspect_server(client, bucket=args.bucket, collection=args.collection,
-                                   full=args.full)
+                                   data=data, records=records)
         yaml_result = yaml.safe_dump(result, default_flow_style=False)
         print(yaml_result, end=u'')
 
