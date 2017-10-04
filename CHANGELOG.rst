@@ -6,7 +6,8 @@ This document describes changes between each past release.
 2.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add ``--data`` and ``--records`` options to be able to dump objects
+  data without dumping records. (#33)
 
 
 2.2.0 (2017-09-01)

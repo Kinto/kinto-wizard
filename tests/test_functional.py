@@ -90,6 +90,35 @@ class FullDump(unittest.TestCase):
         assert set(record['data'].keys()) != {'id', 'last_modified'}
 
 
+class DataRecordsDump(unittest.TestCase):
+    def setUp(self):
+        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+        self.auth = os.getenv("AUTH", "user:pass")
+        self.file = os.getenv("FILE", "tests/kinto-full.yaml")
+        requests.post(self.server + "/__flush__")
+
+    def test_round_trip(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
+        cmd = 'kinto-wizard {} --server={} --auth={} --data --records'
+        load_cmd = cmd.format("dump", self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        output = io.StringIO()
+        with redirect_stdout(output):
+            main()
+        output.flush()
+
+        # Check that identical to original file.
+        generated = output.getvalue()
+        with open(self.file) as f:
+            assert f.read() == generated
+
+
 class BucketCollectionSelectionableDump(unittest.TestCase):
     def setUp(self):
         self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
