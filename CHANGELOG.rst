@@ -3,7 +3,7 @@ Changelog
 
 This document describes changes between each past release.
 
-2.3.0 (unreleased)
+2.3.0 (2017-10-04)
 ------------------
 
 - Add ``--data`` and ``--records`` options to be able to dump objects
