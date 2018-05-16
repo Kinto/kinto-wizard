@@ -1,13 +1,32 @@
 import io
 import os
+import pytest
 import unittest
 import sys
 from contextlib import redirect_stdout
 
 import requests
 
-from kinto_http import Client
+from kinto_http import Client, exceptions
 from kinto_wizard.__main__ import main
+
+
+class DryRunLoad(unittest.TestCase):
+    def setUp(self):
+        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+        self.auth = os.getenv("AUTH", "user:pass")
+        self.file = os.getenv("FILE", "tests/kinto.yaml")
+        requests.post(self.server + "/__flush__")
+
+    def test_dry_round_trip(self):
+        cmd = 'kinto-wizard {} --server={} --auth={} --dry-run'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        with pytest.raises(exceptions.KintoException):
+            client.get_bucket(id="staging")
 
 
 class SimpleDump(unittest.TestCase):
