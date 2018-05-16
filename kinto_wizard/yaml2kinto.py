@@ -3,16 +3,18 @@ from .logger import logger
 from .kinto2yaml import introspect_server
 
 
-async def initialize_server(async_client, config, bucket=None, collection=None, force=False):
+async def initialize_server(async_client, config, bucket=None, collection=None,
+                            force=False, delete_missing_records=False):
     logger.debug("Converting YAML config into a server batch.")
     bid = bucket
     cid = collection
     # 1. Introspect current server state.
-    if not force:
+    if not force or delete_missing_records:
         current_server_status = await introspect_server(
             async_client,
             bucket=bucket,
-            collection=collection
+            collection=collection,
+            records=delete_missing_records
         )
     else:
         # We don't need to load it because we will override it nevertheless.
@@ -142,6 +144,25 @@ async def initialize_server(async_client, config, bucket=None, collection=None, 
                                                 collection=collection_id,
                                                 data=record_data,
                                                 permissions=record_permissions)
+                if delete_missing_records and collection_records and \
+                   'records' in current_collection:
+                    # Fetch all records IDs
+                    file_records_ids = set(collection_records.keys())
+                    server_records_ids = set(current_collection['records'].keys())
+
+                    to_delete = server_records_ids - file_records_ids
+                    if not force:
+                        message = ("Are you sure that you want to delete the "
+                                   "following {} records?".format(len(list(to_delete))))
+                        value = input(message)
+                        print(to_delete)
+                        if value.lower() not in ['y', 'yes']:
+                            print("Exiting")
+                            exit(1)
+                    for record_id in to_delete:
+                        batch.delete_record(id=record_id,
+                                            bucket=bucket_id,
+                                            collection=collection_id)
 
         logger.debug('Sending batch:\n\n%s' % batch.session.requests)
     logger.info("Batch uploaded")
