@@ -1,9 +1,10 @@
+import builtins
 import io
 import os
 import pytest
 import unittest
 import sys
-from contextlib import redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 
 import requests
 
@@ -27,6 +28,14 @@ class DryRunLoad(unittest.TestCase):
         client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
         with pytest.raises(exceptions.KintoException):
             client.get_bucket(id="staging")
+
+
+@contextmanager
+def mockInput(mock):
+    original_input = builtins.input
+    builtins.input = lambda _: mock
+    yield
+    builtins.input = original_input
 
 
 class SimpleDump(unittest.TestCase):
@@ -107,6 +116,74 @@ class FullDump(unittest.TestCase):
         record = client.get_record(bucket='build-hub', collection='archives',
                                    id='0831d549-0a69-48dd-b240-feef94688d47')
         assert set(record['data'].keys()) != {'id', 'last_modified'}
+
+    def test_round_trip_with_client_wins_and_delete_missing_records(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
+        # Change something that could make the server to fail.
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        client.create_record(bucket='build-hub', collection='archives',
+                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --force --delete'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+        with pytest.raises(exceptions.KintoException) as exc:
+            client.get_record(bucket='build-hub', collection='archives',
+                              id='8031d549-0a69-48dd-b240-feef94688d47')
+        assert "'Not Found'" in str(exc.value)
+
+    def test_round_trip_with_delete_missing_records_ask_for_confirmation(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
+        # Change something that could make the server to fail.
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        client.create_record(bucket='build-hub', collection='archives',
+                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+
+        with mockInput('yes'):
+            main()
+
+        with pytest.raises(exceptions.KintoException) as exc:
+            client.get_record(bucket='build-hub', collection='archives',
+                              id='8031d549-0a69-48dd-b240-feef94688d47')
+        assert "'Not Found'" in str(exc.value)
+
+    def test_round_trip_with_delete_missing_records_handle_misconfirmation(self):
+        # Load some data
+        cmd = 'kinto-wizard {} --server={} --auth={}'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+        main()
+
+        # Change something that could make the server to fail.
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        client.create_record(bucket='build-hub', collection='archives',
+                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete'
+        load_cmd = cmd.format("load {}".format(self.file),
+                              self.server, self.auth)
+        sys.argv = load_cmd.split(" ")
+
+        with mockInput('no'):
+            with pytest.raises(SystemExit):
+                main()
 
 
 class DataRecordsDump(unittest.TestCase):
