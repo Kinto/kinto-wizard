@@ -29,6 +29,9 @@ def main():
     subparser.add_argument('--force',
                            help='Load the file using the CLIENT_WINS conflict resolution strategy',
                            action='store_true')
+    subparser.add_argument('--dry-run',
+                           help="Do not apply write call to the server",
+                           action='store_true')
 
     # dump sub-command.
     subparser = subparsers.add_parser('dump')
@@ -55,7 +58,8 @@ def main():
 
     thread_pool = ThreadPoolExecutor()
     event_loop = asyncio.get_event_loop()
-    async_client = AsyncKintoClient(client, event_loop, thread_pool)
+    async_client = AsyncKintoClient(client, event_loop, thread_pool,
+                                    dry_run=getattr(args, 'dry_run', False))
 
     # Run chosen subcommand.
     if args.which == 'dump':
