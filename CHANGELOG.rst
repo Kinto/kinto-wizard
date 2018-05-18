@@ -6,7 +6,8 @@ This document describes changes between each past release.
 2.4.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a ``--dry-run`` for the load command to see how many records
+  would be deleted. (#46)
 
 
 2.3.0 (2017-10-04)

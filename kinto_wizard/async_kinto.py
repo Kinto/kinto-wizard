@@ -8,7 +8,7 @@ event loop and executor.
 """
 
 import functools
-import mock
+from unittest import mock
 
 
 class AsyncKintoClient(object):

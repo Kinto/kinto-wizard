@@ -17,8 +17,7 @@ CONTRIBUTORS = read_file('CONTRIBUTORS.rst')
 
 REQUIREMENTS = [
     "kinto-http>=8",
-    "ruamel.yaml",
-    "mock",  # We use it for --dry-run
+    "ruamel.yaml"
 ]
 
 SETUP_REQUIREMENTS = [
