@@ -8,6 +8,8 @@ This document describes changes between each past release.
 
 - Add a ``--dry-run`` for the load command to see how many records
   would be deleted. (#46)
+- Add a ``--delete-record`` to remove existing records in the
+  collections we are importing. (#47)
 
 
 2.3.0 (2017-10-04)
