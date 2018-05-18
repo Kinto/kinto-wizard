@@ -32,7 +32,7 @@ def main():
     subparser.add_argument('--dry-run',
                            help="Do not apply write call to the server",
                            action='store_true')
-    subparser.add_argument('--delete',
+    subparser.add_argument('--delete-records',
                            help='Delete records that are not in the file.',
                            action='store_true')
 
@@ -95,6 +95,6 @@ def main():
                     bucket=args.bucket,
                     collection=args.collection,
                     force=args.force,
-                    delete_missing_records=args.delete
+                    delete_missing_records=args.delete_records
                 )
             )

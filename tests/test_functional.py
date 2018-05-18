@@ -129,7 +129,7 @@ class FullDump(unittest.TestCase):
         client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
         client.create_record(bucket='build-hub', collection='archives',
                              id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --force --delete'
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --force --delete-records'
         load_cmd = cmd.format("load {}".format(self.file),
                               self.server, self.auth)
         sys.argv = load_cmd.split(" ")
@@ -151,7 +151,7 @@ class FullDump(unittest.TestCase):
         client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
         client.create_record(bucket='build-hub', collection='archives',
                              id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete'
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete-records'
         load_cmd = cmd.format("load {}".format(self.file),
                               self.server, self.auth)
         sys.argv = load_cmd.split(" ")
@@ -176,7 +176,7 @@ class FullDump(unittest.TestCase):
         client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
         client.create_record(bucket='build-hub', collection='archives',
                              id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete'
+        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete-records'
         load_cmd = cmd.format("load {}".format(self.file),
                               self.server, self.auth)
         sys.argv = load_cmd.split(" ")

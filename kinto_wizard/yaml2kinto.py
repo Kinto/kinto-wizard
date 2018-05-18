@@ -144,8 +144,8 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
                                                 collection=collection_id,
                                                 data=record_data,
                                                 permissions=record_permissions)
-                if delete_missing_records and collection_records and \
-                   'records' in current_collection:
+
+                if delete_missing_records and collection_records:
                     # Fetch all records IDs
                     file_records_ids = set(collection_records.keys())
                     server_records_ids = set(current_collection['records'].keys())
