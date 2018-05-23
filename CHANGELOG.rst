@@ -1,4 +1,4 @@
-Changelog
+1Changelog
 =========
 
 This document describes changes between each past release.
@@ -8,8 +8,8 @@ This document describes changes between each past release.
 
 - Add a ``--dry-run`` for the load command to see how many records
   would be deleted. (#46)
-- Add a ``--delete-record`` to remove existing records in the
-  collections we are importing. (#47)
+- Add a ``--delete-record`` to delete the existing records that are
+  not in the YAML file. (#47)
 
 
 2.3.0 (2017-10-04)

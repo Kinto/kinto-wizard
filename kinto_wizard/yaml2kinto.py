@@ -155,7 +155,6 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
                         message = ("Are you sure that you want to delete the "
                                    "following {} records?".format(len(list(to_delete))))
                         value = input(message)
-                        print(to_delete)
                         if value.lower() not in ['y', 'yes']:
                             print("Exiting")
                             exit(1)
