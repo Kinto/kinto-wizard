@@ -3,7 +3,7 @@
 
 This document describes changes between each past release.
 
-2.4.0 (unreleased)
+2.4.0 (2018-05-23)
 ------------------
 
 - Add a ``--dry-run`` for the load command to see how many records
