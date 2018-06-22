@@ -298,6 +298,12 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         with open("tests/dumps/dump-toto.yaml") as f:
             assert f.read() == generated
 
+    def test_wizard_can_handle_dates(self):
+        self.load(bucket="date")
+        generated = self.dump()
+        with open("tests/dumps/dump-date.yaml") as f:
+            assert f.read() == generated
+
 
 class YAMLReferenceSupportTest(unittest.TestCase):
     def setUp(self):

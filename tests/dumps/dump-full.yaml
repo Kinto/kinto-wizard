@@ -50,3 +50,18 @@ natim2:
   permissions:
     write:
     - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+date:
+  collections:
+    dates:
+      data:
+        id: toto
+        last_modified: 1496132464691
+        published_date: 2018-06-22
+        created_at: 2018-06-22 16:34:43.330907
+      permissions:
+        write:
+        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+  groups: {}
+  permissions:
+    write:
+    - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
