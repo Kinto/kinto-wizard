@@ -1,0 +1,19 @@
+date:
+  collections:
+    dates:
+      data:
+        created_at: '2018-06-22T16:34:43.330907'
+        id: dates
+        last_modified: 1496132464691
+        published_date: '2018-06-22'
+      permissions:
+        write:
+        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+      records: {}
+  data:
+    id: date
+    last_modified: 1529681414530
+  groups: {}
+  permissions:
+    write:
+    - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4

@@ -26,12 +26,16 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
             if bid and bucket_id != bid:
                 logger.debug("Skip bucket {}".format(bucket_id))
                 continue
-
             bucket_exists = bucket_id in current_server_status
             bucket_data = bucket.get('data', {})
             bucket_permissions = bucket.get('permissions', {})
             bucket_groups = bucket.get('groups', {})
             bucket_collections = bucket.get('collections', {})
+
+            # Skip bucket if we don't have a collection in them
+            if cid and cid not in bucket_collections:
+                logger.debug("Skip bucket {}".format(bucket_id))
+                continue
 
             if not bucket_exists:
                 bucket_current_groups = {}
