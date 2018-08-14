@@ -215,6 +215,40 @@ class DataRecordsDump(unittest.TestCase):
             assert f.read() == generated
 
 
+def load(server, auth, file, bucket=None, collection=None):
+    cmd = 'kinto-wizard {} --server={} --auth={}'
+
+    if bucket:
+        cmd += ' --bucket={}'.format(bucket)
+
+    if collection:
+        cmd += ' --collection={}'.format(collection)
+
+    load_cmd = cmd.format("load {}".format(file), server, auth)
+    sys.argv = load_cmd.split(" ")
+    main()
+
+
+def dump(server, auth, bucket=None, collection=None):
+    cmd = 'kinto-wizard {} --server={} --auth={}'
+    dump_cmd = cmd.format("dump --full", server, auth)
+
+    if bucket:
+        dump_cmd += ' --bucket={}'.format(bucket)
+
+    if collection:
+        dump_cmd += ' --collection={}'.format(collection)
+
+    sys.argv = dump_cmd.split(" ")
+    output = io.StringIO()
+    with redirect_stdout(output):
+        main()
+    output.flush()
+
+    # Check that identical to original file.
+    return output.getvalue()
+
+
 class BucketCollectionSelectionableDump(unittest.TestCase):
     def setUp(self):
         self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
@@ -223,37 +257,10 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         requests.post(self.server + "/__flush__")
 
     def load(self, bucket=None, collection=None):
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-
-        if bucket:
-            cmd += ' --bucket={}'.format(bucket)
-
-        if collection:
-            cmd += ' --collection={}'.format(collection)
-
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
-        sys.argv = load_cmd.split(" ")
-        main()
+        return load(self.server, self.auth, self.file, bucket, collection)
 
     def dump(self, bucket=None, collection=None):
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        dump_cmd = cmd.format("dump --full", self.server, self.auth)
-
-        if bucket:
-            dump_cmd += ' --bucket={}'.format(bucket)
-
-        if collection:
-            dump_cmd += ' --collection={}'.format(collection)
-
-        sys.argv = dump_cmd.split(" ")
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main()
-        output.flush()
-
-        # Check that identical to original file.
-        return output.getvalue()
+        return dump(self.server, self.auth, bucket, collection)
 
     def test_round_trip_with_bucket_selection_on_load(self):
         self.load(bucket="natim")
@@ -290,3 +297,27 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
         generated = self.dump(collection="toto")
         with open("tests/dumps/dump-toto.yaml") as f:
             assert f.read() == generated
+
+
+class YAMLReferenceSupportTest(unittest.TestCase):
+    def setUp(self):
+        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+        self.auth = os.getenv("AUTH", "user:pass")
+        self.file = os.getenv("FILE", "tests/dumps/with-references.yaml")
+        requests.post(self.server + "/__flush__")
+
+    def load(self, bucket=None, collection=None):
+        return load(self.server, self.auth, self.file, bucket, collection)
+
+    def dump(self, bucket=None, collection=None):
+        return dump(self.server, self.auth, bucket, collection)
+
+    def test_file_can_have_yaml_references(self):
+        self.load()
+
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+
+        collection = client.get_collection(bucket="main", id="certificates")
+        assert 'url' in collection['data']['schema']['properties']
+        collection = client.get_collection(bucket="main", id="addons")
+        assert 'url' in collection['data']['schema']['properties']

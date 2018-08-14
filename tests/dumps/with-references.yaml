@@ -1,0 +1,14 @@
+attachment-schema: &attachment-schema
+  type: object
+  properties:
+    url:
+      type: string
+
+main:
+  collections:
+    certificates:
+      data:
+        schema: *attachment-schema
+    addons:
+      data:
+        schema: *attachment-schema
