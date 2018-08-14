@@ -6,7 +6,10 @@ This document describes changes between each past release.
 2.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Internal changes**
+
+- Add test for YAML node anchors support (#52)
+  See https://en.wikipedia.org/wiki/YAML#Advanced_components
 
 
 2.4.0 (2018-05-23)
