@@ -226,7 +226,7 @@ def load(server, auth, file, bucket=None, collection=None):
 
     load_cmd = cmd.format("load {}".format(file), server, auth)
     sys.argv = load_cmd.split(" ")
-    main()
+    return main()
 
 
 def dump(server, auth, bucket=None, collection=None):
@@ -321,3 +321,27 @@ class YAMLReferenceSupportTest(unittest.TestCase):
         assert 'url' in collection['data']['schema']['properties']
         collection = client.get_collection(bucket="main", id="addons")
         assert 'url' in collection['data']['schema']['properties']
+
+
+class KintoWizardFailsOnError(unittest.TestCase):
+    def setUp(self):
+        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+        self.auth = os.getenv("AUTH", "user:pass")
+        self.file = os.getenv("FILE", "tests/dumps/with-schema.yaml")
+        requests.post(self.server + "/__flush__")
+
+    def load(self, bucket=None, collection=None):
+        return load(self.server, self.auth, self.file, bucket, collection)
+
+    def dump(self, bucket=None, collection=None):
+        return dump(self.server, self.auth, bucket, collection)
+
+    def get_client(self):
+        return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+
+    def test_file_can_have_yaml_references(self):
+        exit_code = self.load()
+        assert exit_code == 1
+
+        records = self.get_client().get_records(bucket="natim", collection="toto")
+        assert len(records) == 0
