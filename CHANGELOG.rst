@@ -6,6 +6,10 @@ This document describes changes between each past release.
 2.5.0 (unreleased)
 ------------------
 
+**Bug fixes**
+
+- Handle YAML date and datetime values. (#51)
+
 **Internal changes**
 
 - Add test for YAML node anchors support (#52)
