@@ -14,7 +14,7 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
             async_client,
             bucket=bucket,
             collection=collection,
-            records=delete_missing_records
+            records=True
         )
     else:
         # We don't need to load it because we will override it nevertheless.
@@ -133,10 +133,7 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
                     else:
                         current_record = current_collection['records'][record_id]
                         current_record_data = current_record.get('data', {})
-                        # XXX: we don't show permissions, until we have a way to fetch records
-                        # in batch (see Kinto/kinto-http.py#145)
                         current_record_permissions = current_record.get('permissions', {})
-
                         if (current_record_data != record_data or
                                 current_record_permissions != record_permissions):
                             batch.update_record(id=record_id,
@@ -145,7 +142,7 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
                                                 data=record_data,
                                                 permissions=record_permissions)
 
-                if delete_missing_records and collection_records:
+                if delete_missing_records and collection_exists and collection_records:
                     # Fetch all records IDs
                     file_records_ids = set(collection_records.keys())
                     server_records_ids = set(current_collection['records'].keys())

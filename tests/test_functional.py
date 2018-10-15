@@ -215,7 +215,7 @@ class DataRecordsDump(unittest.TestCase):
             assert f.read() == generated
 
 
-def load(server, auth, file, bucket=None, collection=None):
+def load(server, auth, file, bucket=None, collection=None, extra=None):
     cmd = 'kinto-wizard {} --server={} --auth={}'
 
     if bucket:
@@ -224,8 +224,11 @@ def load(server, auth, file, bucket=None, collection=None):
     if collection:
         cmd += ' --collection={}'.format(collection)
 
+    if extra:
+        cmd += ' ' + extra
+
     load_cmd = cmd.format("load {}".format(file), server, auth)
-    sys.argv = load_cmd.split(" ")
+    sys.argv = load_cmd.strip().split(" ")
     return main()
 
 
@@ -323,15 +326,15 @@ class YAMLReferenceSupportTest(unittest.TestCase):
         assert 'url' in collection['data']['schema']['properties']
 
 
-class KintoWizardFailsOnError(unittest.TestCase):
+class KintoWizardTestCase(unittest.TestCase):
     def setUp(self):
         self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
         self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/dumps/with-schema.yaml")
         requests.post(self.server + "/__flush__")
 
-    def load(self, bucket=None, collection=None):
-        return load(self.server, self.auth, self.file, bucket, collection)
+    def load(self, bucket=None, collection=None,
+             filename="tests/dumps/with-schema.yaml", extra=""):
+        return load(self.server, self.auth, filename, bucket, collection, extra)
 
     def dump(self, bucket=None, collection=None):
         return dump(self.server, self.auth, bucket, collection)
@@ -345,3 +348,28 @@ class KintoWizardFailsOnError(unittest.TestCase):
 
         records = self.get_client().get_records(bucket="natim", collection="toto")
         assert len(records) == 0
+
+    def test_ignore_4xx_errors_with_parameter(self):
+        exit_code = self.load(extra="--ignore-batch-4xx")
+        assert exit_code == 0
+
+    def test_record_updates(self):
+        self.load(extra="--ignore-batch-4xx")
+        client = self.get_client()
+        client.create_record(data={'title': 'titi', 'last_modified': 1496132479110},
+                             id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
+                             collection='toto', bucket='natim')
+        exit_code = self.load(filename="tests/dumps/with-schema-next.yaml")
+        assert exit_code == 0
+        r = client.get_record(id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
+                              collection='toto', bucket='natim')
+        assert r["data"]["title"] == "toto"
+
+    def test_group_updates(self):
+        self.load(filename="tests/dumps/with-groups.yaml")
+        client = self.get_client()
+        client.update_group(data={"members": ["alexis", "mathieu", "remy"]},
+                            id="toto", bucket="natim")
+        self.load(filename="tests/dumps/with-groups.yaml")
+        r = client.get_group(id="toto", bucket='natim')
+        assert r["data"]["members"] == ["alexis", "mathieu"]
