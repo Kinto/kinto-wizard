@@ -20,7 +20,8 @@ async def gather_dict(dct):
     """
     items = dct.items()
     results = await asyncio.gather(*(item[1] for item in items))
-    return dict(zip((item[0] for item in items), results))
+    keys_results = zip((item[0] for item in items), results)
+    return {k: v for k, v in keys_results if v is not None}
 
 
 async def introspect_server(client, bucket=None, collection=None, data=False, records=False):
@@ -54,13 +55,16 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
         logger.warn('Could not read permissions of bucket {!r}'.format(bid))  # pragma: no cover
 
     if collection:
-        result = {
-            'permissions': _sorted_principals(permissions),
-            'collections': {
-                collection: await introspect_collection(client, bid, collection,
-                                                        data=data, records=records)
+        try:
+            result = {
+                'permissions': _sorted_principals(permissions),
+                'collections': {
+                    collection: await introspect_collection(client, bid, collection,
+                                                            data=data, records=records)
+                }
             }
-        }
+        except kinto_exceptions.CollectionNotFound:
+            return None
     else:
         (collections, groups) = await asyncio.gather(
             client.get_collections(bucket=bid),
