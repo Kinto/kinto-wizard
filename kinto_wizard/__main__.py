@@ -6,7 +6,6 @@ import logging
 
 from ruamel import yaml
 from kinto_http import cli_utils
-from kinto_http.exceptions import KintoBatchException
 
 from .async_kinto import AsyncKintoClient
 from .logger import logger
@@ -89,17 +88,13 @@ def main():
         logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            try:
-                event_loop.run_until_complete(
-                    initialize_server(
-                        async_client,
-                        config,
-                        bucket=args.bucket,
-                        collection=args.collection,
-                        force=args.force,
-                        delete_missing_records=args.delete_records
-                    )
+            event_loop.run_until_complete(
+                initialize_server(
+                    async_client,
+                    config,
+                    bucket=args.bucket,
+                    collection=args.collection,
+                    force=args.force,
+                    delete_missing_records=args.delete_records
                 )
-            except KintoBatchException:
-                return 1
-    return 0
+            )

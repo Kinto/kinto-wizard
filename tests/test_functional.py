@@ -343,15 +343,14 @@ class KintoWizardTestCase(unittest.TestCase):
         return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
 
     def test_exit_code_is_one_if_an_error_occured(self):
-        exit_code = self.load()
-        assert exit_code == 1
-
+        with pytest.raises(exceptions.KintoBatchException):
+            self.load()
         records = self.get_client().get_records(bucket="natim", collection="toto")
         assert len(records) == 0
 
     def test_ignore_4xx_errors_with_parameter(self):
-        exit_code = self.load(extra="--ignore-batch-4xx")
-        assert exit_code == 0
+        # Raises a KintoBatchException in case of error
+        self.load(extra="--ignore-batch-4xx")
 
     def test_record_updates(self):
         self.load(extra="--ignore-batch-4xx")
@@ -359,8 +358,7 @@ class KintoWizardTestCase(unittest.TestCase):
         client.create_record(data={'title': 'titi', 'last_modified': 1496132479110},
                              id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
                              collection='toto', bucket='natim')
-        exit_code = self.load(filename="tests/dumps/with-schema-next.yaml")
-        assert exit_code == 0
+        self.load(filename="tests/dumps/with-schema-next.yaml")
         r = client.get_record(id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
                               collection='toto', bucket='natim')
         assert r["data"]["title"] == "toto"
