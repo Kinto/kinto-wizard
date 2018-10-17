@@ -12,12 +12,59 @@ from kinto_http import Client, exceptions
 from kinto_wizard.__main__ import main
 
 
-class DryRunLoad(unittest.TestCase):
+def load(server, auth, file, bucket=None, collection=None, extra=None):
+    cmd = 'kinto-wizard {} --server={} --auth={}'
+
+    if bucket:
+        cmd += ' --bucket={}'.format(bucket)
+
+    if collection:
+        cmd += ' --collection={}'.format(collection)
+
+    if extra:
+        cmd += ' ' + extra
+
+    load_cmd = cmd.format("load {}".format(file), server, auth)
+    sys.argv = load_cmd.strip().split(" ")
+    return main()
+
+
+def dump(server, auth, bucket=None, collection=None):
+    cmd = 'kinto-wizard {} --server={} --auth={}'
+    dump_cmd = cmd.format("dump --full", server, auth)
+
+    if bucket:
+        dump_cmd += ' --bucket={}'.format(bucket)
+
+    if collection:
+        dump_cmd += ' --collection={}'.format(collection)
+
+    sys.argv = dump_cmd.split(" ")
+    output = io.StringIO()
+    with redirect_stdout(output):
+        main()
+    output.flush()
+
+    # Check that identical to original file.
+    return output.getvalue()
+
+
+class FunctionalTest(unittest.TestCase):
+    server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
+    auth = os.getenv("AUTH", "user:pass")
+    file = os.getenv("FILE", "tests/kinto.yaml")
+
     def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/kinto.yaml")
         requests.post(self.server + "/__flush__")
+
+    def load(self, bucket=None, collection=None, filename=None, extra=None):
+        return load(self.server, self.auth, filename or self.file, bucket, collection, extra)
+
+    def dump(self, bucket=None, collection=None):
+        return dump(self.server, self.auth, bucket, collection)
+
+
+class DryRunLoad(FunctionalTest):
 
     def test_dry_round_trip(self):
         cmd = 'kinto-wizard {} --server={} --auth={} --dry-run'
@@ -38,13 +85,7 @@ def mockInput(mock):
     builtins.input = original_input
 
 
-class SimpleDump(unittest.TestCase):
-    def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/kinto.yaml")
-        requests.post(self.server + "/__flush__")
-
+class SimpleDump(FunctionalTest):
     def test_round_trip(self):
         cmd = 'kinto-wizard {} --server={} --auth={}'
         load_cmd = cmd.format("load {}".format(self.file),
@@ -65,12 +106,8 @@ class SimpleDump(unittest.TestCase):
             assert f.read() == generated
 
 
-class FullDump(unittest.TestCase):
-    def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/kinto-full.yaml")
-        requests.post(self.server + "/__flush__")
+class FullDump(FunctionalTest):
+    file = os.getenv("FILE", "tests/kinto-full.yaml")
 
     def test_round_trip(self):
         # Load some data
@@ -186,12 +223,8 @@ class FullDump(unittest.TestCase):
                 main()
 
 
-class DataRecordsDump(unittest.TestCase):
-    def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/kinto-full.yaml")
-        requests.post(self.server + "/__flush__")
+class DataRecordsDump(FunctionalTest):
+    file = os.getenv("FILE", "tests/kinto-full.yaml")
 
     def test_round_trip(self):
         # Load some data
@@ -215,52 +248,8 @@ class DataRecordsDump(unittest.TestCase):
             assert f.read() == generated
 
 
-def load(server, auth, file, bucket=None, collection=None):
-    cmd = 'kinto-wizard {} --server={} --auth={}'
-
-    if bucket:
-        cmd += ' --bucket={}'.format(bucket)
-
-    if collection:
-        cmd += ' --collection={}'.format(collection)
-
-    load_cmd = cmd.format("load {}".format(file), server, auth)
-    sys.argv = load_cmd.split(" ")
-    main()
-
-
-def dump(server, auth, bucket=None, collection=None):
-    cmd = 'kinto-wizard {} --server={} --auth={}'
-    dump_cmd = cmd.format("dump --full", server, auth)
-
-    if bucket:
-        dump_cmd += ' --bucket={}'.format(bucket)
-
-    if collection:
-        dump_cmd += ' --collection={}'.format(collection)
-
-    sys.argv = dump_cmd.split(" ")
-    output = io.StringIO()
-    with redirect_stdout(output):
-        main()
-    output.flush()
-
-    # Check that identical to original file.
-    return output.getvalue()
-
-
-class BucketCollectionSelectionableDump(unittest.TestCase):
-    def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/dumps/dump-full.yaml")
-        requests.post(self.server + "/__flush__")
-
-    def load(self, bucket=None, collection=None):
-        return load(self.server, self.auth, self.file, bucket, collection)
-
-    def dump(self, bucket=None, collection=None):
-        return dump(self.server, self.auth, bucket, collection)
+class BucketCollectionSelectionableDump(FunctionalTest):
+    file = os.getenv("FILE", "tests/dumps/dump-full.yaml")
 
     def test_round_trip_with_bucket_selection_on_load(self):
         self.load(bucket="natim")
@@ -299,18 +288,8 @@ class BucketCollectionSelectionableDump(unittest.TestCase):
             assert f.read() == generated
 
 
-class YAMLReferenceSupportTest(unittest.TestCase):
-    def setUp(self):
-        self.server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
-        self.auth = os.getenv("AUTH", "user:pass")
-        self.file = os.getenv("FILE", "tests/dumps/with-references.yaml")
-        requests.post(self.server + "/__flush__")
-
-    def load(self, bucket=None, collection=None):
-        return load(self.server, self.auth, self.file, bucket, collection)
-
-    def dump(self, bucket=None, collection=None):
-        return dump(self.server, self.auth, bucket, collection)
+class YAMLReferenceSupportTest(FunctionalTest):
+    file = os.getenv("FILE", "tests/dumps/with-references.yaml")
 
     def test_file_can_have_yaml_references(self):
         self.load()
@@ -321,3 +300,38 @@ class YAMLReferenceSupportTest(unittest.TestCase):
         assert 'url' in collection['data']['schema']['properties']
         collection = client.get_collection(bucket="main", id="addons")
         assert 'url' in collection['data']['schema']['properties']
+
+
+class MiscUpdates(FunctionalTest):
+    def get_client(self):
+        return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+
+    def test_raises_with_4xx_error_in_batch(self):
+        with pytest.raises(exceptions.KintoBatchException):
+            self.load(filename="tests/dumps/with-schema-1.yaml")
+        records = self.get_client().get_records(bucket="natim", collection="toto")
+        assert len(records) == 0
+
+    def test_ignore_batch_4xx_errors_if_specified(self):
+        # Raises a KintoBatchException in case of error
+        self.load(filename="tests/dumps/with-schema-1.yaml", extra="--ignore-batch-4xx")
+
+    def test_record_updates(self):
+        self.load(filename="tests/dumps/with-schema-1.yaml", extra="--ignore-batch-4xx")
+        client = self.get_client()
+        client.create_record(data={'title': 'titi', 'last_modified': 1496132479110},
+                             id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
+                             collection='toto', bucket='natim')
+        self.load(filename="tests/dumps/with-schema-2.yaml")
+        r = client.get_record(id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
+                              collection='toto', bucket='natim')
+        assert r["data"]["title"] == "toto"
+
+    def test_group_updates(self):
+        self.load(filename="tests/dumps/with-groups.yaml")
+        client = self.get_client()
+        client.update_group(data={"members": ["alexis", "mathieu", "remy"]},
+                            id="toto", bucket="natim")
+        self.load(filename="tests/dumps/with-groups.yaml")
+        r = client.get_group(id="toto", bucket='natim')
+        assert r["data"]["members"] == ["alexis", "mathieu"]

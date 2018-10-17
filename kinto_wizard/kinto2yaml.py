@@ -51,7 +51,7 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
 
     permissions = bucket.get('permissions', {})
     if len(permissions) == 0:
-        logger.warn('Could not read permissions of bucket {!r}'.format(bid))
+        logger.warn('Could not read permissions of bucket {!r}'.format(bid))  # pragma: no cover
 
     if collection:
         result = {
