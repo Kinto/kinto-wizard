@@ -20,7 +20,8 @@ async def gather_dict(dct):
     """
     items = dct.items()
     results = await asyncio.gather(*(item[1] for item in items))
-    return {k: v for k, v in zip((item[0] for item in items), results) if v is not None}
+    keys_results = zip((item[0] for item in items), results)
+    return {k: v for k, v in keys_results if v is not None}
 
 
 async def introspect_server(client, bucket=None, collection=None, data=False, records=False):
