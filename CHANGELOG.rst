@@ -8,8 +8,9 @@ This document describes changes between each past release.
 
 **Breaking changes**
 
-- Upgrade to kinto-http.py 10.0 means that the batch will fails on
-  4xx, use the ``--ignore-batch-4xx`` to keep the previous behaviour.
+- Upgrade to kinto-http.py 10.0 means that the batch will fail if one
+  of the server responses has a 4XX status, use the
+  ``--ignore-batch-4xx`` to keep the previous behaviour.
 
 **New features**
 
