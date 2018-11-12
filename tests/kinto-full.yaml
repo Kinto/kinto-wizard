@@ -1,64 +1,65 @@
-build-hub:
-  collections:
-    archives:
-      data:
-        id: archives
-        last_modified: 1495098173096
-        scan: done
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-      records:
-        0831d549-0a69-48dd-b240-feef94688d47:
-          data:
-            build:
-              date: '2017-05-02T10:04:00'
-              id: '20170502100421'
-            download:
-              date: '2017-05-02T11:46:18Z'
-              mimetype: null
-              size: 64410293
-              url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-02-10-02-49-mozilla-central/firefox-55.0a1.en-US.linux-i686.tar.bz2
-            id: 0831d549-0a69-48dd-b240-feef94688d47
-            last_modified: 1495098162940
-            source:
-              product: firefox
-              revision: 48c0fd9c9ec5d68061ea7b59358874ae8da72572
-              tree: mozilla-central
-            systemaddons: null
-            target:
-              channel: nightly
-              locale: en-US
-              platform: linux-i686
-              version: 55.0a1
-          permissions: {}
-        0f9f1308-873f-474a-8caf-8624f62b75d4:
-          data:
-            build:
-              date: '2017-05-06T10:03:00'
-              id: '20170506100311'
-            download:
-              date: '2017-05-06T10:53:34Z'
-              mimetype: null
-              size: 64037828
-              url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-06-10-03-11-mozilla-central/firefox-55.0a1.en-US.linux-x86_64.tar.bz2
-            id: 0f9f1308-873f-474a-8caf-8624f62b75d4
-            last_modified: 1495098162984
-            source:
-              product: firefox
-              revision: 37a5b7f6f101df2eb292b1b6baaf1540c9920e20
-              tree: mozilla-central
-            systemaddons: null
-            target:
-              channel: nightly
-              locale: en-US
-              platform: linux-x86_64
-              version: 55.0a1
-          permissions: {}
-  data:
-    id: build-hub
-    last_modified: 1495098493113
-  groups: {}
-  permissions:
-    write:
-    - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+buckets:
+  build-hub:
+    collections:
+      archives:
+        data:
+          id: archives
+          last_modified: 1495098173096
+          scan: done
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+        records:
+          0831d549-0a69-48dd-b240-feef94688d47:
+            data:
+              build:
+                date: '2017-05-02T10:04:00'
+                id: '20170502100421'
+              download:
+                date: '2017-05-02T11:46:18Z'
+                mimetype: null
+                size: 64410293
+                url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-02-10-02-49-mozilla-central/firefox-55.0a1.en-US.linux-i686.tar.bz2
+              id: 0831d549-0a69-48dd-b240-feef94688d47
+              last_modified: 1495098162940
+              source:
+                product: firefox
+                revision: 48c0fd9c9ec5d68061ea7b59358874ae8da72572
+                tree: mozilla-central
+              systemaddons: null
+              target:
+                channel: nightly
+                locale: en-US
+                platform: linux-i686
+                version: 55.0a1
+            permissions: {}
+          0f9f1308-873f-474a-8caf-8624f62b75d4:
+            data:
+              build:
+                date: '2017-05-06T10:03:00'
+                id: '20170506100311'
+              download:
+                date: '2017-05-06T10:53:34Z'
+                mimetype: null
+                size: 64037828
+                url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-06-10-03-11-mozilla-central/firefox-55.0a1.en-US.linux-x86_64.tar.bz2
+              id: 0f9f1308-873f-474a-8caf-8624f62b75d4
+              last_modified: 1495098162984
+              source:
+                product: firefox
+                revision: 37a5b7f6f101df2eb292b1b6baaf1540c9920e20
+                tree: mozilla-central
+              systemaddons: null
+              target:
+                channel: nightly
+                locale: en-US
+                platform: linux-x86_64
+                version: 55.0a1
+            permissions: {}
+    data:
+      id: build-hub
+      last_modified: 1495098493113
+    groups: {}
+    permissions:
+      write:
+      - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4

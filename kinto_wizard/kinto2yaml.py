@@ -30,16 +30,17 @@ async def introspect_server(client, bucket=None, collection=None, data=False, re
         bucket_info = await introspect_bucket(client, bucket, collection=collection,
                                               data=data, records=records)
         if bucket_info:
-            return {bucket: bucket_info}
-        return {}
+            return {"buckets": {bucket: bucket_info}}
+        return {"buckets": {}}
 
     logger.info("Fetch buckets list.")
     buckets = await client.get_buckets()
-    return await gather_dict({
+    buckets_tree = await gather_dict({
         bucket['id']: introspect_bucket(client, bucket['id'], collection=collection,
                                         data=data, records=records)
         for bucket in buckets
     })
+    return {"buckets": buckets_tree}
 
 
 async def introspect_bucket(client, bid, collection=None, data=False, records=False):

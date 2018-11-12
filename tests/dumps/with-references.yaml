@@ -3,12 +3,12 @@ attachment-schema: &attachment-schema
   properties:
     url:
       type: string
-
-main:
-  collections:
-    certificates:
-      data:
-        schema: *attachment-schema
-    addons:
-      data:
-        schema: *attachment-schema
+buckets:
+  main:
+    collections:
+      certificates:
+        data:
+          schema: *attachment-schema
+      addons:
+        data:
+          schema: *attachment-schema
