@@ -18,7 +18,7 @@ $(INSTALL_STAMP): $(PYTHON) setup.py
 	touch $(INSTALL_STAMP)
 
 $(VENV)/bin/kinto: virtualenv
-	$(VENV)/bin/pip install -U kinto
+	$(VENV)/bin/pip install --pre -U kinto
 install-kinto: $(VENV)/bin/kinto
 
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
