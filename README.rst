@@ -65,3 +65,27 @@ Dump
 
 The dump also accepts a ``--full`` option that will output object data and collection
 records.
+
+
+Validate a dump
+---------------
+
+The way Kinto works is by letting you change a collection schema but
+won't enforce the new schema for existing records.
+
+When you dump a collection and its records, you can end-up having
+records that Kinto won't let you upload back because the schema
+changed and they are invalid with the current schema.
+
+This can lead to unexpected behavior on loading time which is a bit
+cumbersome because depending of the size of the file you are loading,
+it can takes a long time before getting an actual error.
+
+In order to fix the file before loading, you can use the validate
+command that would give you the error Kinto would return if you were
+to load the file on a Kinto server.
+
+
+.. code-block:: bash
+
+    kinto-wizard validate current-config.yml

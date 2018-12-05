@@ -49,6 +49,14 @@ def dump(server, auth, bucket=None, collection=None):
     return output.getvalue()
 
 
+def validate(filename):
+    cmd = 'kinto-wizard validate {}'
+
+    load_cmd = cmd.format(filename)
+    sys.argv = load_cmd.strip().split(" ")
+    return main()
+
+
 class FunctionalTest(unittest.TestCase):
     server = os.getenv("SERVER_URL", "http://localhost:8888/v1")
     auth = os.getenv("AUTH", "user:pass")
@@ -62,6 +70,15 @@ class FunctionalTest(unittest.TestCase):
 
     def dump(self, bucket=None, collection=None):
         return dump(self.server, self.auth, bucket, collection)
+
+    def validate(self, filename=None, code=0):
+        try:
+            validate(filename or self.file)
+        except SystemExit as e:
+            if e.code == code:
+                return
+            else:
+                self.fail("Unexpected validation status")
 
 
 class DryRunLoad(FunctionalTest):
@@ -251,6 +268,9 @@ class DataRecordsDump(FunctionalTest):
 class BucketCollectionSelectionableDump(FunctionalTest):
     file = os.getenv("FILE", "tests/dumps/dump-full.yaml")
 
+    def test_validate(self):
+        self.validate()
+
     def test_round_trip_with_bucket_selection_on_load(self):
         self.load(bucket="natim")
         generated = self.dump()
@@ -297,6 +317,9 @@ class BucketCollectionSelectionableDump(FunctionalTest):
 class YAMLReferenceSupportTest(FunctionalTest):
     file = os.getenv("FILE", "tests/dumps/with-references.yaml")
 
+    def test_validate(self):
+        self.validate()
+
     def test_file_can_have_yaml_references(self):
         self.load()
 
@@ -312,9 +335,19 @@ class YAMLReferenceSupportTest(FunctionalTest):
             client.get_collection(bucket="attachment-schema")
 
 
+class WrongSchemaValidationTest(FunctionalTest):
+    file = "tests/dumps/wrong-schema.yaml"
+
+    def test_validate(self):
+        self.validate(code=1)
+
+
 class MiscUpdates(FunctionalTest):
     def get_client(self):
         return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+
+    def test_validate(self):
+        self.validate(filename="tests/dumps/with-schema-1.yaml", code=1)
 
     def test_raises_with_4xx_error_in_batch(self):
         with pytest.raises(exceptions.KintoBatchException):

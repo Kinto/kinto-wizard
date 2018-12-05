@@ -23,7 +23,7 @@ install-kinto: $(VENV)/bin/kinto
 
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON) dev-requirements.txt
-	$(VENV)/bin/pip install -r dev-requirements.txt
+	$(VENV)/bin/pip install --pre -Ur dev-requirements.txt
 	touch $(DEV_STAMP)
 
 virtualenv: $(PYTHON)

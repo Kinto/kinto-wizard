@@ -11,6 +11,12 @@ This document describes changes between each past release.
 - ``kinto-wizard load`` now expects to find a ``buckets:`` root level in the YAML file.
   And ``kinto-wizard dump`` will now add it (fixes #59)
 
+**New feature**
+
+- Add a ``validate`` command that would let you validate exported
+  records of a file with the exported collection schema to validate
+  that records can be loaded. (fixes #61)
+
 
 3.0.0 (2018-10-17)
 ------------------

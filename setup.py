@@ -16,6 +16,7 @@ CHANGELOG = read_file('CHANGELOG.rst')
 CONTRIBUTORS = read_file('CONTRIBUTORS.rst')
 
 REQUIREMENTS = [
+    "jsonschema",
     "kinto-http>=8",
     "ruamel.yaml"
 ]
