@@ -55,6 +55,7 @@ def main():
     # validate sub-command.
     subparser = subparsers.add_parser('validate')
     subparser.set_defaults(which='validate')
+    subparser.set_defaults(verbosity=logging.INFO)
     subparser.add_argument(dest='filepath', help='YAML file to validate')
     cli_utils.add_parser_options(subparser)
 
@@ -66,10 +67,10 @@ def main():
 
     if args.which == 'validate':
         logger.debug("Start validation...")
-        logger.warning("Load YAML file {!r}".format(args.filepath))
+        logger.info("Load YAML file {!r}".format(args.filepath))
         with open(args.filepath, 'r') as f:
             config = yaml.safe_load(f)
-            logger.warning("File loaded!")
+            logger.info("File loaded!")
             fine = validate_export(config)
             sys.exit(0 if fine else 1)
 

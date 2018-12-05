@@ -10,6 +10,7 @@ IGNORED_FIELDS = (
     "id",
     "last_modified",
     "schema",
+    "attachment",
 )
 
 
@@ -42,20 +43,20 @@ def validate_schema(data, schema, ignore_fields=[]):
 def validate_export(config):
     everything_is_fine = True
     for bid, bucket in config.items():
-        logger.warning(f"- Bucket {bid}")
+        logger.info(f"- Bucket {bid}")
         bucket_collections = bucket.get('collections', {})
         for cid, collection in bucket_collections.items():
-            logger.warning(f"  - Collection {cid}")
+            logger.info(f"  - Collection {cid}")
             collection_data = collection.get('data', {})
             if "schema" not in collection_data:
-                logger.warning("    No schema\n")
+                logger.info("    No schema\n")
                 continue
 
             schema = collection_data["schema"]
             try:
                 check_schema(schema)
             except ValidationError:
-                logger.exception(f"Collection {cid} validation failed.")
+                logger.exception(f"Collection {cid!r} validation failed.")
                 everything_is_fine = False
                 continue
 
@@ -65,6 +66,6 @@ def validate_export(config):
                 try:
                     validate_schema(record["data"], schema, ignore_fields=IGNORED_FIELDS)
                 except ValidationError:
-                    logger.exception(f"Record {record_id} validation failed.")
+                    logger.exception(f"Record {record_id!r} validation failed.")
                     everything_is_fine = False
     return everything_is_fine
