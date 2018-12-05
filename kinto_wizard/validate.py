@@ -2,7 +2,7 @@ try:
     from jsonschema import Draft7Validator as SchemaValidator
 except ImportError:  # pragma: no cover
     from jsonschema import Draft4Validator as SchemaValidator
-from jsonschema import validate, SchemaError, ValidationError, RefResolutionError
+from jsonschema import validate, SchemaError, ValidationError
 from .logger import logger
 
 
