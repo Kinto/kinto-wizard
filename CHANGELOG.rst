@@ -16,6 +16,11 @@ This document describes changes between each past release.
 - Add a ``validate`` command to run JSON schema validation on the records
   locally. (fixes #61)
 
+**Internal changes**
+
+- To ease the transition between kinto-wizard 3 and kinto-wizard 4,
+  handle both for a couple of releases. (#64)
+
 
 3.0.0 (2018-10-17)
 ------------------
