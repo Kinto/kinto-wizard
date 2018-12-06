@@ -1,0 +1,32 @@
+buckets:
+  natim:
+    collections:
+      toto:
+        data:
+          id: toto
+          schema:
+            title: "Recipes"
+            description: "ChefClub recipes"
+            type: "WashMachine"
+            additionalProperties: false
+            required:
+              - title
+            properties:
+              title:
+                type: string
+                title: "Title"
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+        records:
+          e2686bac-c45e-4144-9738-edfeb3d9da6d:
+            data:
+              id: e2686bac-c45e-4144-9738-edfeb3d9da6d
+              title: toto
+            permissions: {}
+    data:
+      id: natim
+    groups: {}
+    permissions:
+      write:
+      - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4

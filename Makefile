@@ -14,16 +14,16 @@ all: install
 install: $(INSTALL_STAMP)
 $(INSTALL_STAMP): $(PYTHON) setup.py
 	$(VENV)/bin/pip install -U pip
-	$(VENV)/bin/pip install -Ue .
+	$(VENV)/bin/pip install --pre -Ue .
 	touch $(INSTALL_STAMP)
 
 $(VENV)/bin/kinto: virtualenv
-	$(VENV)/bin/pip install -U kinto
+	$(VENV)/bin/pip install --pre -U kinto
 install-kinto: $(VENV)/bin/kinto
 
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON) dev-requirements.txt
-	$(VENV)/bin/pip install -r dev-requirements.txt
+	$(VENV)/bin/pip install --pre -Ur dev-requirements.txt
 	touch $(DEV_STAMP)
 
 virtualenv: $(PYTHON)
@@ -42,7 +42,7 @@ runkinto: install-kinto $(SERVER_CONFIG) migrate
 build-requirements:
 	$(VIRTUALENV) $(TEMPDIR)
 	$(TEMPDIR)/bin/pip install -U pip
-	$(TEMPDIR)/bin/pip install -Ue .
+	$(TEMPDIR)/bin/pip install --pre -Ue .
 	$(TEMPDIR)/bin/pip freeze | grep -v -- '^-e' > requirements.txt
 
 tests:

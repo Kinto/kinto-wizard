@@ -3,6 +3,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import argparse
 import logging
+import sys
 
 from ruamel import yaml
 from kinto_http import cli_utils
@@ -11,12 +12,13 @@ from .async_kinto import AsyncKintoClient
 from .logger import logger
 from .kinto2yaml import introspect_server
 from .yaml2kinto import initialize_server
+from .validate import validate_export
 
 
 def main():
     parser = argparse.ArgumentParser(description="Wizard to setup Kinto with YAML")
     subparsers = parser.add_subparsers(title='subcommand',
-                                       description='Load/Dump',
+                                       description='Load/Dump/Validate',
                                        dest='subcommand',
                                        help="Choose and run with --help")
     subparsers.required = True
@@ -50,11 +52,27 @@ def main():
                            help="Export collections' records",
                            action='store_true')
 
+    # validate sub-command.
+    subparser = subparsers.add_parser('validate')
+    subparser.set_defaults(which='validate')
+    subparser.set_defaults(verbosity=logging.INFO)
+    subparser.add_argument(dest='filepath', help='YAML file to validate')
+    cli_utils.add_parser_options(subparser)
+
     # Parse CLI args.
     args = parser.parse_args()
     cli_utils.setup_logger(logger, args)
     kinto_logger = logging.getLogger('kinto_http')
     cli_utils.setup_logger(kinto_logger, args)
+
+    if args.which == 'validate':
+        logger.debug("Start validation...")
+        logger.info("Load YAML file {!r}".format(args.filepath))
+        with open(args.filepath, 'r') as f:
+            config = yaml.safe_load(f)
+            logger.info("File loaded!")
+            fine = validate_export(config)
+            sys.exit(0 if fine else 1)
 
     logger.debug("Instantiate Kinto client.")
     client = cli_utils.create_client_from_args(args)
