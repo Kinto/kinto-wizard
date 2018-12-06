@@ -42,7 +42,8 @@ def validate_schema(data, schema, ignore_fields=[]):
 
 def validate_export(config):
     everything_is_fine = True
-    for bid, bucket in config.items():
+    buckets = config.get("buckets", {})
+    for bid, bucket in buckets.items():
         logger.info(f"- Bucket {bid}")
         bucket_collections = bucket.get('collections', {})
         for cid, collection in bucket_collections.items():
