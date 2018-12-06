@@ -21,7 +21,13 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
         # We don't need to load it because we will override it nevertheless.
         current_server_buckets = {}
     # 2. For each bucket
-    buckets = config.get("buckets", {})
+    if 'buckets' in config:
+        buckets = config.get("buckets", {})
+    else:  # pragma: no cover
+        # Legacy for file before kinto-wizard 4.0
+        logger.warning("Your file seems to be in legacy format. "
+                       "Please add a `buckets:` root level.")
+        buckets = config
     with async_client.batch() as batch:
         for bucket_id, bucket in buckets.items():
             # Skip buckets that we don't want to import.
