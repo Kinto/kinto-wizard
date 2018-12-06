@@ -3,10 +3,13 @@ Changelog
 
 This document describes changes between each past release.
 
-3.1.0 (unreleased)
+4.0.0  (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Breaking changes**
+
+- ``kinto-wizard load`` now expects to find a ``buckets:`` root level in the YAML file.
+  And ``kinto-wizard dump`` will now add it (fixes #59)
 
 
 3.0.0 (2018-10-17)

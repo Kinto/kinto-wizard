@@ -307,6 +307,10 @@ class YAMLReferenceSupportTest(FunctionalTest):
         collection = client.get_collection(bucket="main", id="addons")
         assert 'url' in collection['data']['schema']['properties']
 
+        # the anchor did not get interpreted as a bucket:
+        with self.assertRaises(exceptions.KintoException):
+            client.get_collection(bucket="attachment-schema")
+
 
 class MiscUpdates(FunctionalTest):
     def get_client(self):

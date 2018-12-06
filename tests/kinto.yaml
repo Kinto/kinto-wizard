@@ -1,51 +1,52 @@
-staging:
-  collections:
-    addons:
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-        - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
-    certificates:
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-        - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
-    gfx:
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-        - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
-    plugins:
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-        - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
-  groups:
-    editors:
-      data:
-        members:
-        - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-    reviewers:
-      data:
-        members:
-        - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
-      permissions:
-        write:
-        - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-        - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
-  permissions:
-    write:
-    - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
-    - system.Authenticated
+buckets:
+  staging:
+    collections:
+      addons:
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+          - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
+      certificates:
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+          - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
+      gfx:
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+          - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
+      plugins:
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+          - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
+    groups:
+      editors:
+        data:
+          members:
+          - basicauth:b9cef2faaad7c6f4a93f2f2cb1c526d97a51a3ded68051ec04aafd46880ef436
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+      reviewers:
+        data:
+          members:
+          - basicauth:d12a7eaa096830e2d2140331abded2d7d8019eef192e4a9e70d54efbbdf02f74
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+          - basicauth:cbd3731f18c97ebe1d31d9846b5f1b95cf8eeeae586e201277263434041e99d1
+    permissions:
+      write:
+      - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+      - system.Authenticated

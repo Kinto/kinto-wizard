@@ -16,17 +16,19 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
             collection=collection,
             records=True
         )
+        current_server_buckets = current_server_status["buckets"]
     else:
         # We don't need to load it because we will override it nevertheless.
-        current_server_status = {}
+        current_server_buckets = {}
     # 2. For each bucket
+    buckets = config.get("buckets", {})
     with async_client.batch() as batch:
-        for bucket_id, bucket in config.items():
+        for bucket_id, bucket in buckets.items():
             # Skip buckets that we don't want to import.
             if bid and bucket_id != bid:
                 logger.debug("Skip bucket {}".format(bucket_id))
                 continue
-            bucket_exists = bucket_id in current_server_status
+            bucket_exists = bucket_id in current_server_buckets
             bucket_data = bucket.get('data', {})
             bucket_permissions = bucket.get('permissions', {})
             bucket_groups = bucket.get('groups', {})
@@ -47,7 +49,7 @@ async def initialize_server(async_client, config, bucket=None, collection=None,
                                     permissions=bucket_permissions,
                                     safe=(not force))
             else:
-                current_bucket = current_server_status[bucket_id]
+                current_bucket = current_server_buckets[bucket_id]
                 bucket_current_groups = {}
                 bucket_current_collections = {}
                 current_bucket_data = {}
