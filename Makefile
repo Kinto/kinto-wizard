@@ -42,7 +42,7 @@ runkinto: install-kinto $(SERVER_CONFIG) migrate
 build-requirements:
 	$(VIRTUALENV) $(TEMPDIR)
 	$(TEMPDIR)/bin/pip install -U pip
-	$(TEMPDIR)/bin/pip install --pre -Ue .
+	$(TEMPDIR)/bin/pip install -Ue .
 	$(TEMPDIR)/bin/pip freeze | grep -v -- '^-e' > requirements.txt
 
 tests:
