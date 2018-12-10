@@ -6,7 +6,9 @@ This document describes changes between each past release.
 4.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Handle Draftv4 schema validation for empty required.
 
 
 4.0.0 (2018-12-10)

@@ -24,7 +24,14 @@ def check_schema(data):
 
 def validate_schema(data, schema, ignore_fields=[]):
     required_fields = [f for f in schema.get("required", []) if f not in ignore_fields]
-    schema = {**schema, "required": required_fields}
+    # jsonschema doesn't accept 'required': [] yet.
+    # See https://github.com/Julian/jsonschema/issues/337.
+    # In the meantime, strip out 'required' if no other fields are required.
+    if required_fields:
+        schema = {**schema, "required": required_fields}
+    else:
+        schema = {f: v for f, v in schema.items() if f != "required"}
+
     data = {f: v for f, v in data.items() if f not in ignore_fields}
 
     try:
