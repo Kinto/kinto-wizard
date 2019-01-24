@@ -2,7 +2,7 @@ kinto
 flake8
 pytest
 pytest-cache
-pytest-cover
+pytest-cov
 pytest-sugar
 pytest-xdist
 tox
