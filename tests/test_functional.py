@@ -50,10 +50,7 @@ def dump(server, auth, bucket=None, collection=None):
 
 
 def validate(filename):
-    cmd = 'kinto-wizard validate {}'
-
-    load_cmd = cmd.format(filename)
-    sys.argv = load_cmd.strip().split(" ")
+    sys.argv = ['kinto-wizard', 'validate', filename]
     return main()
 
 
@@ -78,7 +75,7 @@ class FunctionalTest(unittest.TestCase):
             if e.code == code:
                 return
             else:
-                self.fail("Unexpected validation status")
+                self.fail(f"Unexpected validation status {e.code} != {code}")
 
 
 class DryRunLoad(FunctionalTest):
@@ -347,7 +344,10 @@ class MiscUpdates(FunctionalTest):
         return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
 
     def test_validate(self):
+        # This dump has a schema that requires `title` field, and a record doesn't have it.
         self.validate(filename="tests/dumps/with-schema-1.yaml", code=1)
+        # This dump has a schema that does not require `title` field, so the dump is valid.
+        self.validate(filename="tests/dumps/with-schema-2.yaml")
 
     def test_raises_with_4xx_error_in_batch(self):
         with pytest.raises(exceptions.KintoBatchException):
