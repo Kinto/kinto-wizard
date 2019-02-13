@@ -4,6 +4,6 @@ idna==2.8
 jsonschema==2.6.0
 kinto-http==10.2.0
 requests==2.21.0
-ruamel.yaml==0.15.87
+ruamel.yaml==0.15.88
 Unidecode==1.0.23
 urllib3==1.24.1
