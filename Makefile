@@ -14,16 +14,16 @@ all: install
 install: $(INSTALL_STAMP)
 $(INSTALL_STAMP): $(PYTHON) setup.py
 	$(VENV)/bin/pip install -U pip
-	$(VENV)/bin/pip install --pre -Ue .
+	$(VENV)/bin/pip install -Ue .
 	touch $(INSTALL_STAMP)
 
 $(VENV)/bin/kinto: virtualenv
-	$(VENV)/bin/pip install --pre -U kinto
+	$(VENV)/bin/pip install -U kinto
 install-kinto: $(VENV)/bin/kinto
 
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON) dev-requirements.txt
-	$(VENV)/bin/pip install --pre -Ur dev-requirements.txt
+	$(VENV)/bin/pip install -Ur dev-requirements.txt
 	touch $(DEV_STAMP)
 
 virtualenv: $(PYTHON)
