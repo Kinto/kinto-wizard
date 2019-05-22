@@ -3,7 +3,7 @@ certifi==2019.3.9
 chardet==3.0.4
 idna==2.8
 jsonschema==3.0.1
-kinto-http==10.4.0
+kinto-http==10.4.1
 pyrsistent==0.15.2
 requests==2.22.0
 ruamel.yaml==0.15.96
