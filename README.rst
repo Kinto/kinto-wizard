@@ -63,9 +63,11 @@ Dump
         --auth admin:credentials \
         > current-config.yml
 
-The dump also accepts a ``--full`` option that will output object data and collection
-records.
+The dump command also accepts these options:
 
+* ``--data`` - Include buckets, collections and groups data (attachments, schemas, display fields, uischema etc.).
+* ``--records`` - Include collections` records.
+* ``--full`` - Combination of data and records.
 
 Validate a dump
 ---------------
