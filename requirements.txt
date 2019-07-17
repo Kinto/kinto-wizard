@@ -6,7 +6,7 @@ jsonschema==3.0.1
 kinto-http==10.4.1
 pyrsistent==0.15.2
 requests==2.22.0
-ruamel.yaml==0.15.97
+ruamel.yaml==0.15.100
 six==1.12.0
 Unidecode==1.1.1
 urllib3==1.25.3
