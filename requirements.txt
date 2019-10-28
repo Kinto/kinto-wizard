@@ -4,7 +4,7 @@ chardet==3.0.4
 idna==2.8
 jsonschema==3.1.1
 kinto-http==10.6.0
-pyrsistent==0.15.4
+pyrsistent==0.15.5
 requests==2.22.0
 ruamel.yaml==0.16.5
 six==1.12.0
