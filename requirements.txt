@@ -8,5 +8,5 @@ pyrsistent==0.17.3
 requests==2.25.1
 ruamel.yaml==0.17.4
 six==1.15.0
-Unidecode==1.1.2
+Unidecode==1.2.0
 urllib3==1.26.4
