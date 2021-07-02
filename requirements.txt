@@ -9,4 +9,4 @@ requests==2.25.1
 ruamel.yaml==0.17.10
 six==1.16.0
 Unidecode==1.2.0
-urllib3==1.26.5
+urllib3==1.26.6
