@@ -1,6 +1,6 @@
 attrs==21.4.0
 certifi==2022.6.15
-chardet==4.0.0
+chardet==5.0.0
 idna==3.3
 jsonschema==4.6.0
 kinto-http==10.9.0
