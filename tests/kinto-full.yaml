@@ -19,7 +19,8 @@ buckets:
                 date: '2017-05-02T11:46:18Z'
                 mimetype: null
                 size: 64410293
-                url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-02-10-02-49-mozilla-central/firefox-55.0a1.en-US.linux-i686.tar.bz2
+                url: 
+                  https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-02-10-02-49-mozilla-central/firefox-55.0a1.en-US.linux-i686.tar.bz2
               id: 0831d549-0a69-48dd-b240-feef94688d47
               last_modified: 1495098162940
               source:
@@ -42,7 +43,8 @@ buckets:
                 date: '2017-05-06T10:53:34Z'
                 mimetype: null
                 size: 64037828
-                url: https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-06-10-03-11-mozilla-central/firefox-55.0a1.en-US.linux-x86_64.tar.bz2
+                url: 
+                  https://archive.mozilla.org/pub/firefox/nightly/2017/05/2017-05-06-10-03-11-mozilla-central/firefox-55.0a1.en-US.linux-x86_64.tar.bz2
               id: 0f9f1308-873f-474a-8caf-8624f62b75d4
               last_modified: 1495098162984
               source:
