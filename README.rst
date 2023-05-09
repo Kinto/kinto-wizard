@@ -5,8 +5,8 @@ kinto-wizard
 
 .. |pypi| image:: https://img.shields.io/pypi/v/kinto-wizard.svg
     :target: https://pypi.python.org/pypi/kinto-wizard
-.. |ci| image::  https://img.shields.io/github/actions/workflow/status/Kinto/kinto-changes/test.yml?branch=master
-    :target: https://github.com/Kinto/kinto-changes/actions
+.. |ci| image::  https://img.shields.io/github/actions/workflow/status/Kinto/kinto-wizard/test.yml?branch=master
+    :target: https://github.com/Kinto/kinto-wizard/actions
 .. |coverage| image:: https://coveralls.io/repos/github/Kinto/kinto-wizard/badge.svg?branch=master
     :target: https://coveralls.io/github/Kinto/kinto-wizard?branch=master
 
