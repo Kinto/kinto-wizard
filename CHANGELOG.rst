@@ -8,6 +8,7 @@ This document describes changes between each past release.
 
 **Internal Changes**
 
+- Remove usage of deprecated ``ruamel.yaml`` loading and dumping function (now requires >0.15, released in 2019) (#296)
 - Fix tests coverage.
 
 

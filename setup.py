@@ -18,7 +18,7 @@ CONTRIBUTORS = read_file('CONTRIBUTORS.rst')
 REQUIREMENTS = [
     "jsonschema",
     "kinto-http>=8",
-    "ruamel.yaml"
+    "ruamel.yaml>0.15"
 ]
 
 SETUP_REQUIREMENTS = [
