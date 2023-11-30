@@ -1,7 +1,7 @@
 attrs==23.1.0
 certifi==2023.7.22
 chardet==5.2.0
-idna==3.4
+idna==3.6
 jsonschema==4.19.1
 kinto-http==11.0.1
 pyrsistent==0.19.3
