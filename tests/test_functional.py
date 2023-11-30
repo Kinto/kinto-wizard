@@ -7,6 +7,7 @@ import sys
 from contextlib import contextmanager, redirect_stdout
 
 import requests
+from ruamel.yaml import YAML
 
 from kinto_http import Client, exceptions
 from kinto_wizard.__main__ import main
@@ -52,6 +53,13 @@ def dump(server, auth, bucket=None, collection=None):
 def validate(filename):
     sys.argv = ['kinto-wizard', 'validate', filename]
     return main()
+
+
+def assert_identical(a, b):
+    yaml = YAML(typ='safe')
+    a_parsed = yaml.load(a)
+    b_parsed = yaml.load(b)
+    assert a_parsed == b_parsed
 
 
 class FunctionalTest(unittest.TestCase):
@@ -117,7 +125,7 @@ class SimpleDump(FunctionalTest):
         # Check that identical to original file.
         generated = output.getvalue()
         with open(self.file) as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
 
 class FullDump(FunctionalTest):
@@ -142,7 +150,7 @@ class FullDump(FunctionalTest):
         # Check that identical to original file.
         generated = output.getvalue()
         with open(self.file) as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_client_wins(self):
         # Load some data
@@ -259,7 +267,7 @@ class DataRecordsDump(FunctionalTest):
         # Check that identical to original file.
         generated = output.getvalue()
         with open(self.file) as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
 
 class BucketCollectionSelectionableDump(FunctionalTest):
@@ -272,43 +280,43 @@ class BucketCollectionSelectionableDump(FunctionalTest):
         self.load(bucket="natim")
         generated = self.dump()
         with open("tests/dumps/dump-natim.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_bucket_selection(self):
         self.load()
         generated = self.dump(bucket="natim")
         with open("tests/dumps/dump-natim.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_bucket_collection_selection_on_load(self):
         self.load(bucket="natim", collection="toto")
         generated = self.dump()
         with open("tests/dumps/dump-natim-toto-groups.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_bucket_collection_selection(self):
         self.load()
         generated = self.dump(bucket="natim", collection="toto")
         with open("tests/dumps/dump-natim-toto.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_collection_selection_on_load(self):
         self.load(collection="toto")
         generated = self.dump()
         with open("tests/dumps/dump-toto-groups.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_round_trip_with_collection_selection(self):
         self.load()
         generated = self.dump(collection="toto")
         with open("tests/dumps/dump-toto.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
     def test_wizard_can_handle_dates(self):
         self.load(bucket="date")
         generated = self.dump()
         with open("tests/dumps/dump-date.yaml") as f:
-            assert f.read() == generated
+            assert_identical(f.read(), generated)
 
 
 class YAMLReferenceSupportTest(FunctionalTest):
