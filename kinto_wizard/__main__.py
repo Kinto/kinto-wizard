@@ -5,7 +5,7 @@ import argparse
 import logging
 import sys
 
-from ruamel import yaml
+from ruamel.yaml import YAML
 from kinto_http import cli_utils
 
 from .async_kinto import AsyncKintoClient
@@ -68,11 +68,12 @@ def main():
     if args.which == 'validate':
         logger.debug("Start validation...")
         logger.info("Load YAML file {!r}".format(args.filepath))
+        yaml = YAML(typ='safe')
         with open(args.filepath, 'r') as f:
-            config = yaml.safe_load(f)
-            logger.info("File loaded!")
-            fine = validate_export(config)
-            sys.exit(0 if fine else 1)
+            config = yaml.load(f)
+        logger.info("File loaded!")
+        fine = validate_export(config)
+        sys.exit(0 if fine else 1)
 
     logger.debug("Instantiate Kinto client.")
     client = cli_utils.create_client_from_args(args)
@@ -98,21 +99,23 @@ def main():
             introspect_server(async_client, bucket=args.bucket, collection=args.collection,
                               data=data, records=records)
         )
-        yaml_result = yaml.safe_dump(result, default_flow_style=False)
-        print(yaml_result, end=u'')
+        yaml = YAML()
+        yaml.default_flow_style = False
+        yaml.dump(result, sys.stdout)
 
     elif args.which == 'load':
         logger.debug("Start initialization...")
         logger.info("Load YAML file {!r}".format(args.filepath))
+        yaml = YAML(typ='safe')
         with open(args.filepath, 'r') as f:
-            config = yaml.safe_load(f)
-            event_loop.run_until_complete(
-                initialize_server(
-                    async_client,
-                    config,
-                    bucket=args.bucket,
-                    collection=args.collection,
-                    force=args.force,
-                    delete_missing_records=args.delete_records
-                )
+            config = yaml.load(f)
+        event_loop.run_until_complete(
+            initialize_server(
+                async_client,
+                config,
+                bucket=args.bucket,
+                collection=args.collection,
+                force=args.force,
+                delete_missing_records=args.delete_records
             )
+        )
