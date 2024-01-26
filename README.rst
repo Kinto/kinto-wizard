@@ -91,3 +91,12 @@ to load the file on a Kinto server.
 .. code-block:: bash
 
     kinto-wizard validate current-config.yml
+
+
+Releasing
+=========
+
+1. Create a release on Github on https://github.com/Kinto/kinto-wizard/releases/new
+2. Create a new tag `X.Y.Z` (*This tag will be created from the target when you publish this release.*)
+3. Generate release notes
+4. Publish release
