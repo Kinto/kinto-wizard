@@ -1,29 +1,28 @@
 import builtins
 import io
 import os
-import pytest
-import unittest
 import sys
+import unittest
 from contextlib import contextmanager, redirect_stdout
 
+import pytest
 import requests
-from ruamel.yaml import YAML
-
 from kinto_http import Client, exceptions
 from kinto_wizard.__main__ import main
+from ruamel.yaml import YAML
 
 
 def load(server, auth, file, bucket=None, collection=None, extra=None):
-    cmd = 'kinto-wizard {} --server={} --auth={}'
+    cmd = "kinto-wizard {} --server={} --auth={}"
 
     if bucket:
-        cmd += ' --bucket={}'.format(bucket)
+        cmd += " --bucket={}".format(bucket)
 
     if collection:
-        cmd += ' --collection={}'.format(collection)
+        cmd += " --collection={}".format(collection)
 
     if extra:
-        cmd += ' ' + extra
+        cmd += " " + extra
 
     load_cmd = cmd.format("load {}".format(file), server, auth)
     sys.argv = load_cmd.strip().split(" ")
@@ -31,14 +30,14 @@ def load(server, auth, file, bucket=None, collection=None, extra=None):
 
 
 def dump(server, auth, bucket=None, collection=None):
-    cmd = 'kinto-wizard {} --server={} --auth={}'
+    cmd = "kinto-wizard {} --server={} --auth={}"
     dump_cmd = cmd.format("dump --full", server, auth)
 
     if bucket:
-        dump_cmd += ' --bucket={}'.format(bucket)
+        dump_cmd += " --bucket={}".format(bucket)
 
     if collection:
-        dump_cmd += ' --collection={}'.format(collection)
+        dump_cmd += " --collection={}".format(collection)
 
     sys.argv = dump_cmd.split(" ")
     output = io.StringIO()
@@ -51,12 +50,12 @@ def dump(server, auth, bucket=None, collection=None):
 
 
 def validate(filename):
-    sys.argv = ['kinto-wizard', 'validate', filename]
+    sys.argv = ["kinto-wizard", "validate", filename]
     return main()
 
 
 def assert_identical(a, b):
-    yaml = YAML(typ='safe')
+    yaml = YAML(typ="safe")
     a_parsed = yaml.load(a)
     b_parsed = yaml.load(b)
     assert a_parsed == b_parsed
@@ -87,14 +86,12 @@ class FunctionalTest(unittest.TestCase):
 
 
 class DryRunLoad(FunctionalTest):
-
     def test_dry_round_trip(self):
-        cmd = 'kinto-wizard {} --server={} --auth={} --dry-run'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={} --dry-run"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
         with pytest.raises(exceptions.KintoException):
             client.get_bucket(id="staging")
 
@@ -109,9 +106,8 @@ def mockInput(mock):
 
 class SimpleDump(FunctionalTest):
     def test_round_trip(self):
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
@@ -133,13 +129,12 @@ class FullDump(FunctionalTest):
 
     def test_round_trip(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
-        cmd = 'kinto-wizard {} --server={} --auth={} --full'
+        cmd = "kinto-wizard {} --server={} --auth={} --full"
         load_cmd = cmd.format("dump", self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         output = io.StringIO()
@@ -154,93 +149,109 @@ class FullDump(FunctionalTest):
 
     def test_round_trip_with_client_wins(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
         # Change something that could make the server to fail.
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
-        client.update_record(bucket='build-hub', collection='archives',
-                             id='0831d549-0a69-48dd-b240-feef94688d47', data={})
-        record = client.get_record(bucket='build-hub', collection='archives',
-                                   id='0831d549-0a69-48dd-b240-feef94688d47')
-        assert set(record['data'].keys()) == {'id', 'last_modified'}
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --force'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.update_record(
+            bucket="build-hub",
+            collection="archives",
+            id="0831d549-0a69-48dd-b240-feef94688d47",
+            data={},
+        )
+        record = client.get_record(
+            bucket="build-hub", collection="archives", id="0831d549-0a69-48dd-b240-feef94688d47"
+        )
+        assert set(record["data"].keys()) == {"id", "last_modified"}
+        cmd = "kinto-wizard {} --server={} -D --auth={} --force"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
-        record = client.get_record(bucket='build-hub', collection='archives',
-                                   id='0831d549-0a69-48dd-b240-feef94688d47')
-        assert set(record['data'].keys()) != {'id', 'last_modified'}
+        record = client.get_record(
+            bucket="build-hub", collection="archives", id="0831d549-0a69-48dd-b240-feef94688d47"
+        )
+        assert set(record["data"].keys()) != {"id", "last_modified"}
 
     def test_round_trip_with_client_wins_and_delete_missing_records(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
         # Change something that could make the server to fail.
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
-        client.create_record(bucket='build-hub', collection='archives',
-                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --force --delete-records'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.create_record(
+            bucket="build-hub",
+            collection="archives",
+            id="8031d549-0a69-48dd-b240-feef94688d47",
+            data={},
+        )
+        cmd = "kinto-wizard {} --server={} -D --auth={} --force --delete-records"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
         with pytest.raises(exceptions.KintoException) as exc:
-            client.get_record(bucket='build-hub', collection='archives',
-                              id='8031d549-0a69-48dd-b240-feef94688d47')
+            client.get_record(
+                bucket="build-hub",
+                collection="archives",
+                id="8031d549-0a69-48dd-b240-feef94688d47",
+            )
         assert "'Not Found'" in str(exc.value)
 
     def test_round_trip_with_delete_missing_records_ask_for_confirmation(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
         # Change something that could make the server to fail.
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
-        client.create_record(bucket='build-hub', collection='archives',
-                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete-records'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.create_record(
+            bucket="build-hub",
+            collection="archives",
+            id="8031d549-0a69-48dd-b240-feef94688d47",
+            data={},
+        )
+        cmd = "kinto-wizard {} --server={} -D --auth={} --delete-records"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
 
-        with mockInput('yes'):
+        with mockInput("yes"):
             main()
 
         with pytest.raises(exceptions.KintoException) as exc:
-            client.get_record(bucket='build-hub', collection='archives',
-                              id='8031d549-0a69-48dd-b240-feef94688d47')
+            client.get_record(
+                bucket="build-hub",
+                collection="archives",
+                id="8031d549-0a69-48dd-b240-feef94688d47",
+            )
         assert "'Not Found'" in str(exc.value)
 
     def test_round_trip_with_delete_missing_records_handle_misconfirmation(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
         # Change something that could make the server to fail.
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
-        client.create_record(bucket='build-hub', collection='archives',
-                             id='8031d549-0a69-48dd-b240-feef94688d47', data={})
-        cmd = 'kinto-wizard {} --server={} -D --auth={} --delete-records'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.create_record(
+            bucket="build-hub",
+            collection="archives",
+            id="8031d549-0a69-48dd-b240-feef94688d47",
+            data={},
+        )
+        cmd = "kinto-wizard {} --server={} -D --auth={} --delete-records"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
 
-        with mockInput('no'):
+        with mockInput("no"):
             with pytest.raises(SystemExit):
                 main()
 
@@ -250,13 +261,12 @@ class DataRecordsDump(FunctionalTest):
 
     def test_round_trip(self):
         # Load some data
-        cmd = 'kinto-wizard {} --server={} --auth={}'
-        load_cmd = cmd.format("load {}".format(self.file),
-                              self.server, self.auth)
+        cmd = "kinto-wizard {} --server={} --auth={}"
+        load_cmd = cmd.format("load {}".format(self.file), self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         main()
 
-        cmd = 'kinto-wizard {} --server={} --auth={} --data --records'
+        cmd = "kinto-wizard {} --server={} --auth={} --data --records"
         load_cmd = cmd.format("dump", self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         output = io.StringIO()
@@ -328,12 +338,12 @@ class YAMLReferenceSupportTest(FunctionalTest):
     def test_file_can_have_yaml_references(self):
         self.load()
 
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
 
         collection = client.get_collection(bucket="main", id="certificates")
-        assert 'url' in collection['data']['schema']['properties']
+        assert "url" in collection["data"]["schema"]["properties"]
         collection = client.get_collection(bucket="main", id="addons")
-        assert 'url' in collection['data']['schema']['properties']
+        assert "url" in collection["data"]["schema"]["properties"]
 
         # the anchor did not get interpreted as a bucket:
         with self.assertRaises(exceptions.KintoException):
@@ -349,7 +359,7 @@ class WrongSchemaValidationTest(FunctionalTest):
 
 class MiscUpdates(FunctionalTest):
     def get_client(self):
-        return Client(server_url=self.server, auth=tuple(self.auth.split(':')))
+        return Client(server_url=self.server, auth=tuple(self.auth.split(":")))
 
     def test_validate(self):
         # This dump has a schema that requires `title` field, and a record doesn't have it.
@@ -370,19 +380,24 @@ class MiscUpdates(FunctionalTest):
     def test_record_updates(self):
         self.load(filename="tests/dumps/with-schema-1.yaml", extra="--ignore-batch-4xx")
         client = self.get_client()
-        client.create_record(data={'title': 'titi', 'last_modified': 1496132479110},
-                             id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
-                             collection='toto', bucket='natim')
+        client.create_record(
+            data={"title": "titi", "last_modified": 1496132479110},
+            id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
+            collection="toto",
+            bucket="natim",
+        )
         self.load(filename="tests/dumps/with-schema-2.yaml")
-        r = client.get_record(id="e2686bac-c45e-4144-9738-edfeb3d9da6d",
-                              collection='toto', bucket='natim')
+        r = client.get_record(
+            id="e2686bac-c45e-4144-9738-edfeb3d9da6d", collection="toto", bucket="natim"
+        )
         assert r["data"]["title"] == "toto"
 
     def test_group_updates(self):
         self.load(filename="tests/dumps/with-groups.yaml")
         client = self.get_client()
-        client.update_group(data={"members": ["alexis", "mathieu", "remy"]},
-                            id="toto", bucket="natim")
+        client.update_group(
+            data={"members": ["alexis", "mathieu", "remy"]}, id="toto", bucket="natim"
+        )
         self.load(filename="tests/dumps/with-groups.yaml")
-        r = client.get_group(id="toto", bucket='natim')
+        r = client.get_group(id="toto", bucket="natim")
         assert r["data"]["members"] == ["alexis", "mathieu"]

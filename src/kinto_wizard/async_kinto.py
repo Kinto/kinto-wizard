@@ -38,10 +38,7 @@ class AsyncKintoMethod(object):
     def __call__(self, *args, **kwargs):
         client = self.async_client.client
         real_method = getattr(client, self.method_name)
-        if not self.dry_run or self.method_name.startswith('get'):
+        if not self.dry_run or self.method_name.startswith("get"):
             executor = self.async_client.executor
             loop = self.async_client.loop
-            return loop.run_in_executor(
-                executor,
-                functools.partial(real_method, *args, **kwargs)
-            )
+            return loop.run_in_executor(executor, functools.partial(real_method, *args, **kwargs))
