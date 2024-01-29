@@ -15,6 +15,9 @@ $(INSTALL_STAMP): $(PYTHON) pyproject.toml requirements.txt
 $(PYTHON):
 	python3 -m venv $(VENV)
 
+requirements.txt: requirements.in
+	pip-compile
+
 need-kinto-running:
 	@curl http://localhost:8888/v0/ 2>/dev/null 1>&2 || (echo "Run 'make run-kinto' before starting tests." && exit 1)
 
