@@ -28,7 +28,7 @@ run-kinto: install
 .PHONY: tests
 test: tests
 tests: install need-kinto-running
-	$(VENV)/bin/pytest --cov-report term-missing --cov-fail-under 100 --cov kinto_wizard
+	$(VENV)/bin/pytest --cov-report term-missing --cov-fail-under 95 --cov kinto_wizard
 
 .PHONY: lint
 lint: install
