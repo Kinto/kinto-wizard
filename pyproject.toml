@@ -40,6 +40,9 @@ dev = [
     "pytest-xdist",
 ]
 
+[project.scripts]
+kinto-wizard = "kinto_wizard.__main__:main"
+
 [tool.pip-tools]
 generate-hashes = true
 
