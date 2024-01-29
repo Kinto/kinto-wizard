@@ -2,7 +2,8 @@ try:
     from jsonschema import Draft7Validator as SchemaValidator
 except ImportError:  # pragma: no cover
     from jsonschema import Draft4Validator as SchemaValidator
-from jsonschema import validate, SchemaError, ValidationError
+from jsonschema import SchemaError, ValidationError, validate
+
 from .logger import logger
 
 
@@ -49,19 +50,20 @@ def validate_schema(data, schema, ignore_fields=[]):
 
 def validate_export(config):
     everything_is_fine = True
-    if 'buckets' in config:
+    if "buckets" in config:
         buckets = config.get("buckets", {})
     else:  # pragma: no cover
         # Legacy for file before kinto-wizard 4.0
-        logger.warning("Your file seems to be in legacy format. "
-                       "Please add a `buckets:` root level.")
+        logger.warning(
+            "Your file seems to be in legacy format. " "Please add a `buckets:` root level."
+        )
         buckets = config
     for bid, bucket in buckets.items():
         logger.info(f"- Bucket {bid}")
-        bucket_collections = bucket.get('collections', {})
+        bucket_collections = bucket.get("collections", {})
         for cid, collection in bucket_collections.items():
             logger.info(f"  - Collection {cid}")
-            collection_data = collection.get('data', {})
+            collection_data = collection.get("data", {})
             if "schema" not in collection_data:
                 logger.info("    No schema\n")
                 continue
@@ -74,7 +76,7 @@ def validate_export(config):
                 everything_is_fine = False
                 continue
 
-            collection_records = collection.get('records', {})
+            collection_records = collection.get("records", {})
 
             for record_id, record in collection_records.items():
                 try:

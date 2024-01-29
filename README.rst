@@ -22,22 +22,11 @@ and configure their attributes and permissions.
 Installation
 ------------
 
-The last release
-~~~~~~~~~~~~~~~~
+Use pip:
 
 .. code-block:: bash
 
-    pip install kinto-wizard
-
-
-The development version
-~~~~~~~~~~~~~~~~~~~~~~~
-
-After having cloned the repo:
-
-.. code-block:: bash
-
-    pip install -e .
+    $ pip install kinto-wizard
 
 
 How to use it?
@@ -91,3 +80,9 @@ to load the file on a Kinto server.
 .. code-block:: bash
 
     kinto-wizard validate current-config.yml
+
+
+Development
+-----------
+
+See `contributing docs <./.github/CONTRIBUTING.md>`_

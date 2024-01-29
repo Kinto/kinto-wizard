@@ -1,57 +1,47 @@
-SERVER_CONFIG = tests/kinto.ini
-VIRTUALENV = virtualenv
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON = $(VENV)/bin/python
-DEV_STAMP = $(VENV)/.dev_env_installed.stamp
 INSTALL_STAMP = $(VENV)/.install.stamp
-TEMPDIR := $(shell mktemp -d)
 
-.PHONY: all install migrate runkinto virtualenv tests
-
-OBJECTS = .venv .coverage
-
+.PHONY: all
 all: install
+
 install: $(INSTALL_STAMP)
-$(INSTALL_STAMP): $(PYTHON) setup.py
+$(INSTALL_STAMP): $(PYTHON) pyproject.toml requirements.txt
 	$(VENV)/bin/pip install -U pip
-	$(VENV)/bin/pip install -Ue .
+	$(VENV)/bin/pip install -r requirements.txt
+	$(VENV)/bin/pip install -e ".[dev]"
 	touch $(INSTALL_STAMP)
 
-$(VENV)/bin/kinto: virtualenv
-	$(VENV)/bin/pip install -U kinto
-install-kinto: $(VENV)/bin/kinto
-
-install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
-$(DEV_STAMP): $(PYTHON) dev-requirements.txt
-	$(VENV)/bin/pip install -Ur dev-requirements.txt
-	touch $(DEV_STAMP)
-
-virtualenv: $(PYTHON)
 $(PYTHON):
-	$(VIRTUALENV) $(VENV)
+	python3 -m venv $(VENV)
 
-migrate:
-	$(VENV)/bin/kinto migrate --ini $(SERVER_CONFIG)
+requirements.txt: requirements.in
+	pip-compile
 
-$(SERVER_CONFIG):
-	$(VENV)/bin/kinto init --ini $(SERVER_CONFIG) --backend=memory
+need-kinto-running:
+	@curl http://localhost:8888/v0/ 2>/dev/null 1>&2 || (echo "Run 'make run-kinto' before starting tests." && exit 1)
 
-runkinto: install-kinto $(SERVER_CONFIG) migrate
-	$(VENV)/bin/kinto start --ini $(SERVER_CONFIG)
+run-kinto: install
+	$(VENV)/bin/kinto migrate --ini tests/kinto.ini
+	$(VENV)/bin/kinto start --ini tests/kinto.ini
 
-build-requirements:
-	$(VIRTUALENV) $(TEMPDIR)
-	$(TEMPDIR)/bin/pip install -U pip
-	$(TEMPDIR)/bin/pip install -Ue .
-	$(TEMPDIR)/bin/pip freeze | grep -v -- '^-e' > requirements.txt
+.PHONY: tests
+test: tests
+tests: install need-kinto-running
+	$(VENV)/bin/pytest --cov-report term-missing --cov-fail-under 95 --cov kinto_wizard
 
-tests:
-	tox
+.PHONY: lint
+lint: install
+	$(VENV)/bin/ruff check src tests
+	$(VENV)/bin/ruff format --check src tests
 
+.PHONY: format
+format: install
+	$(VENV)/bin/ruff check --fix src tests
+	$(VENV)/bin/ruff format src tests
+
+.IGNORE: clean
 clean:
-	rm -fr build/ dist/ .tox .venv
-	find . -name '*.pyc' -delete
-	find . -name '__pycache__' -type d | xargs rm -fr
-
-tests-once: install-dev
-	$(VENV)/bin/py.test --cov-report term-missing --cov-fail-under 100 --cov kinto_wizard
+	find src -name '__pycache__' -type d -exec rm -fr {} \;
+	find tests -name '__pycache__' -type d -exec rm -fr {} \;
+	rm -rf .venv .coverage *.egg-info .pytest_cache .ruff_cache build dist
