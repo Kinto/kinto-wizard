@@ -122,9 +122,9 @@ jsonschema-specifications==2023.12.1 \
     --hash=sha256:48a76787b3e70f5ed53f1160d2b81f586e4ca6d1548c5de7085d1682674764cc \
     --hash=sha256:87e4fdf3a94858b8a2ba2778d9ba57d8a9cafca7c7489c46ba0d30a8bc6a9c3c
     # via jsonschema
-kinto-http==11.0.1 \
-    --hash=sha256:294ef42073a4accd577468525f5d8ed30003c6eaaaa1f091e46cd0993d6fceb6 \
-    --hash=sha256:baf213bf137b3b9819cf14b51e0fb798adf1040ded5f065f99b386943762d4f9
+kinto-http==11.1.0 \
+    --hash=sha256:79f9a8eabd1850e38b076e2625eae380f8ba437903f7ce51ebb106c24ef73d46 \
+    --hash=sha256:e475b7e15b4c7562b6a07e6af51afcae626cbc1a3982fb0ca46b16af07d3b668
     # via -r requirements.in
 referencing==0.32.1 \
     --hash=sha256:3c57da0513e9563eb7e203ebe9bb3a1b509b042016433bd1e45a2853466c3dd3 \
