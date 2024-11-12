@@ -8,8 +8,9 @@ from contextlib import contextmanager, redirect_stdout
 import pytest
 import requests
 from kinto_http import Client, exceptions
-from kinto_wizard.__main__ import main
 from ruamel.yaml import YAML
+
+from kinto_wizard.__main__ import main
 
 
 def load(server, auth, file, bucket=None, collection=None, extra=None):
