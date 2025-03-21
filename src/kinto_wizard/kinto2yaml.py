@@ -5,8 +5,8 @@ from kinto_http import exceptions as kinto_exceptions
 from .logger import logger
 
 
-def _sorted_principals(permissions):
-    return {perm: sorted(principals) for perm, principals in permissions.items()}
+def sorted_principals(permissions):
+    return {perm: sorted(principals) for perm, principals in sorted(permissions.items())}
 
 
 async def gather_dict(dct):
@@ -64,7 +64,7 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
     if collection:
         try:
             result = {
-                "permissions": _sorted_principals(permissions),
+                "permissions": sorted_principals(permissions),
                 "collections": {
                     collection: await introspect_collection(
                         client, bid, collection, data=data, records=records
@@ -95,7 +95,7 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
             introspect_collections, introspect_groups
         )
         result = {
-            "permissions": _sorted_principals(permissions),
+            "permissions": sorted_principals(permissions),
             "collections": introspected_collections,
             "groups": introspected_groups,
         }
@@ -108,7 +108,7 @@ async def introspect_collection(client, bid, cid, data=False, records=False):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = await client.get_collection(bucket=bid, id=cid)
     result = {
-        "permissions": _sorted_principals(collection["permissions"]),
+        "permissions": sorted_principals(collection["permissions"]),
     }
     if data:
         result["data"] = collection["data"]
@@ -127,8 +127,8 @@ async def introspect_collection(client, bid, cid, data=False, records=False):
 async def introspect_group(client, bid, gid, data=False):
     logger.info("Fetch information of group {!r}/{!r}".format(bid, gid))
     group = await client.get_group(bucket=bid, id=gid)
-    result = {"permissions": _sorted_principals(group["permissions"])}
+    result = {"permissions": sorted_principals(group["permissions"])}
     data = group["data"] if data else {}
-    data["members"] = sorted(group["data"]["members"])
+    data["members"] = group["data"]["members"]
     result["data"] = data
     return result

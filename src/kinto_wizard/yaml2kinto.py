@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from .kinto2yaml import introspect_server
+from .kinto2yaml import introspect_server, sorted_principals
 from .logger import logger
 
 
@@ -29,7 +29,7 @@ async def initialize_server(
                 continue
             bucket_exists = bucket_id in current_server_buckets
             bucket_data = bucket.get("data", {})
-            bucket_permissions = bucket.get("permissions", {})
+            bucket_permissions = sorted_principals(bucket.get("permissions", {}))
             bucket_groups = bucket.get("groups", {})
             bucket_collections = bucket.get("collections", {})
 
@@ -76,7 +76,7 @@ async def initialize_server(
             for group_id, group_info in bucket_groups.items():
                 group_exists = bucket_exists and group_id in bucket_current_groups
                 group_data = group_info.get("data", {})
-                group_permissions = group_info.get("permissions", {})
+                group_permissions = sorted_principals(group_info.get("permissions", {}))
 
                 if not group_exists:
                     await batch.create_group(
@@ -110,7 +110,7 @@ async def initialize_server(
                     continue
                 collection_exists = bucket_exists and collection_id in bucket_current_collections
                 collection_data = collection.get("data", {})
-                collection_permissions = collection.get("permissions", {})
+                collection_permissions = sorted_principals(collection.get("permissions", {}))
 
                 if not collection_exists:
                     await batch.create_collection(
@@ -143,7 +143,7 @@ async def initialize_server(
                         "records", {}
                     )
                     record_data = record.get("data", {})
-                    record_permissions = record.get("permissions", None)
+                    record_permissions = sorted_principals(record.get("permissions", None))
 
                     if not record_exists:
                         await batch.create_record(

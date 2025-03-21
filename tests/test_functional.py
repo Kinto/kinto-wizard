@@ -401,4 +401,14 @@ class MiscUpdates(FunctionalTest):
         )
         self.load(filename="tests/dumps/with-groups.yaml")
         r = client.get_group(id="toto", bucket="natim")
-        assert r["data"]["members"] == ["alexis", "mathieu"]
+        assert r["data"]["members"] == ["mathieu", "alexis"]
+
+    def test_timestamps_are_not_changed_if_dump_hasnt_changed(self):
+        self.load(filename="tests/dumps/with-groups.yaml")
+        client = self.get_client()
+        before = client.get_group(id="toto", bucket="natim")["data"]["last_modified"]
+
+        self.load(filename="tests/dumps/with-groups.yaml")
+
+        after = client.get_group(id="toto", bucket="natim")["data"]["last_modified"]
+        assert before == after
