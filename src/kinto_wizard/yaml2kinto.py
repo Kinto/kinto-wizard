@@ -25,7 +25,7 @@ async def initialize_server(
     else:  # pragma: no cover
         # Legacy for file before kinto-wizard 4.0
         logger.warning(
-            "Your file seems to be in legacy format. " "Please add a `buckets:` root level."
+            "Your file seems to be in legacy format. Please add a `buckets:` root level."
         )
         buckets = config
     with async_client.batch() as batch:
