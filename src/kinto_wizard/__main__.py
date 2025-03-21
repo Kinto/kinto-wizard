@@ -4,19 +4,17 @@ import argparse
 import asyncio
 import logging
 import sys
-from concurrent.futures import ThreadPoolExecutor
 
-from kinto_http import cli_utils
+from kinto_http import AsyncClient, cli_utils
 from ruamel.yaml import YAML
 
-from .async_kinto import AsyncKintoClient
 from .kinto2yaml import introspect_server
 from .logger import logger
 from .validate import validate_export
 from .yaml2kinto import initialize_server
 
 
-def main():
+async def execute():
     parser = argparse.ArgumentParser(description="Wizard to setup Kinto with YAML")
     subparsers = parser.add_subparsers(
         title="subcommand",
@@ -81,12 +79,16 @@ def main():
         sys.exit(0 if fine else 1)
 
     logger.debug("Instantiate Kinto client.")
-    client = cli_utils.create_client_from_args(args)
-
-    thread_pool = ThreadPoolExecutor()
-    event_loop = asyncio.get_event_loop()
-    async_client = AsyncKintoClient(
-        client, event_loop, thread_pool, dry_run=getattr(args, "dry_run", False)
+    # TODO: add cli_utils.create_async_client_from_args(args)
+    async_client = AsyncClient(
+        server_url=args.server,
+        auth=args.auth,
+        bucket=getattr(args, "bucket", None),
+        collection=getattr(args, "collection", None),
+        retry=args.retry,
+        retry_after=args.retry_after,
+        dry_mode=getattr(args, "dry_run", False),
+        ignore_batch_4xx=args.ignore_batch_4xx,
     )
 
     # Run chosen subcommand.
@@ -106,14 +108,12 @@ def main():
                 "records" if records else "",
             )
         )
-        result = event_loop.run_until_complete(
-            introspect_server(
-                async_client,
-                bucket=args.bucket,
-                collection=args.collection,
-                data=data,
-                records=records,
-            )
+        result = await introspect_server(
+            async_client,
+            bucket=args.bucket,
+            collection=args.collection,
+            data=data,
+            records=records,
         )
         yaml = YAML()
         yaml.default_flow_style = False
@@ -125,13 +125,15 @@ def main():
         yaml = YAML(typ="safe")
         with open(args.filepath, "r") as f:
             config = yaml.load(f)
-        event_loop.run_until_complete(
-            initialize_server(
-                async_client,
-                config,
-                bucket=args.bucket,
-                collection=args.collection,
-                force=args.force,
-                delete_missing_records=args.delete_records,
-            )
+        await initialize_server(
+            async_client,
+            config,
+            bucket=args.bucket,
+            collection=args.collection,
+            force=args.force,
+            delete_missing_records=args.delete_records,
         )
+
+
+def main():
+    asyncio.run(execute())
