@@ -21,7 +21,7 @@ async def initialize_server(
         current_server_buckets = {}
     # 2. For each bucket
     buckets = config["buckets"]
-    with async_client.batch() as batch:
+    with await async_client.batch() as batch:
         for bucket_id, bucket in buckets.items():
             # Skip buckets that we don't want to import.
             if bid and bucket_id != bid:
@@ -43,7 +43,7 @@ async def initialize_server(
                 bucket_current_collections = {}
 
                 # Create the bucket if not present in the introspection
-                batch.create_bucket(
+                await batch.create_bucket(
                     id=bucket_id,
                     data=bucket_data,
                     permissions=bucket_permissions,
@@ -68,7 +68,7 @@ async def initialize_server(
                     current_bucket_data != bucket_data
                     or current_bucket_permissions != bucket_permissions
                 ):
-                    batch.patch_bucket(
+                    await batch.patch_bucket(
                         id=bucket_id, data=bucket_data, permissions=bucket_permissions
                     )
 
@@ -79,7 +79,7 @@ async def initialize_server(
                 group_permissions = group_info.get("permissions", {})
 
                 if not group_exists:
-                    batch.create_group(
+                    await batch.create_group(
                         id=group_id,
                         bucket=bucket_id,
                         data=group_data,
@@ -95,7 +95,7 @@ async def initialize_server(
                         current_group_data != group_data
                         or current_group_permissions != group_permissions
                     ):
-                        batch.patch_group(
+                        await batch.patch_group(
                             id=group_id,
                             bucket=bucket_id,
                             data=group_data,
@@ -113,7 +113,7 @@ async def initialize_server(
                 collection_permissions = collection.get("permissions", {})
 
                 if not collection_exists:
-                    batch.create_collection(
+                    await batch.create_collection(
                         id=collection_id,
                         bucket=bucket_id,
                         data=collection_data,
@@ -129,7 +129,7 @@ async def initialize_server(
                         current_collection_data != collection_data
                         or current_collection_permissions != collection_permissions
                     ):
-                        batch.patch_collection(
+                        await batch.patch_collection(
                             id=collection_id,
                             bucket=bucket_id,
                             data=collection_data,
@@ -146,7 +146,7 @@ async def initialize_server(
                     record_permissions = record.get("permissions", None)
 
                     if not record_exists:
-                        batch.create_record(
+                        await batch.create_record(
                             id=record_id,
                             bucket=bucket_id,
                             collection=collection_id,
@@ -162,7 +162,7 @@ async def initialize_server(
                             current_record_data != record_data
                             or current_record_permissions != record_permissions
                         ):
-                            batch.update_record(
+                            await batch.update_record(
                                 id=record_id,
                                 bucket=bucket_id,
                                 collection=collection_id,
@@ -186,7 +186,7 @@ async def initialize_server(
                             print("Exiting")
                             exit(1)
                     for record_id in to_delete:
-                        batch.delete_record(
+                        await batch.delete_record(
                             id=record_id, bucket=bucket_id, collection=collection_id
                         )
 
