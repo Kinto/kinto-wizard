@@ -129,6 +129,6 @@ async def introspect_group(client, bid, gid, data=False):
     group = await client.get_group(bucket=bid, id=gid)
     result = {"permissions": _sorted_principals(group["permissions"])}
     data = group["data"] if data else {}
-    data["members"] = sorted(group["data"]["members"])
+    data["members"] = group["data"]["members"]
     result["data"] = data
     return result
