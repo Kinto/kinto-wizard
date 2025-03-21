@@ -9,6 +9,7 @@ buckets:
           - alexis
         permissions:
           write:
+          - ldap:account@domain.org
           - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
     permissions:
       write:
