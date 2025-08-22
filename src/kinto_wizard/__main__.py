@@ -40,6 +40,10 @@ async def execute():
     subparser.add_argument(
         "--delete-records", help="Delete records that are not in the file.", action="store_true"
     )
+    subparser.add_argument(
+        "--attachments", help="Load attachments from specified folder",
+        default=None
+    )
 
     # dump sub-command.
     subparser = subparsers.add_parser("dump")
@@ -54,6 +58,7 @@ async def execute():
         "--data", help="Export buckets, collections and groups data", action="store_true"
     )
     subparser.add_argument("--records", help="Export collections' records", action="store_true")
+    subparser.add_argument("--attachments", help="Export collections' attachments to specified folder", default=None)
 
     # validate sub-command.
     subparser = subparsers.add_parser("validate")
@@ -96,9 +101,11 @@ async def execute():
         if args.full:
             data = True
             records = True
+            attachments = "__attachments__"
         else:
             data = args.data
             records = args.records
+            attachments = args.attachments
 
         logger.debug(
             "Start introspection with %s%s%s..."
@@ -114,6 +121,7 @@ async def execute():
             collection=args.collection,
             data=data,
             records=records,
+            attachments=attachments
         )
         yaml = YAML()
         yaml.default_flow_style = False
@@ -132,6 +140,7 @@ async def execute():
             collection=args.collection,
             force=args.force,
             delete_missing_records=args.delete_records,
+            attachments=args.attachments
         )
 
 
