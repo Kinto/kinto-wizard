@@ -25,6 +25,9 @@ run-kinto: install
 	$(VENV)/bin/kinto migrate --ini tests/kinto.ini
 	$(VENV)/bin/kinto start --ini tests/kinto.ini
 
+serve-attachments: install
+	$(VENV)/bin/python -m http.server --directory /tmp/server/attachments 9999
+
 .PHONY: tests
 test: tests
 tests: install need-kinto-running

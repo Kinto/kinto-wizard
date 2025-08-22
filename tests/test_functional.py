@@ -4,6 +4,7 @@ import os
 import sys
 import unittest
 from contextlib import contextmanager, redirect_stdout
+from copy import deepcopy
 
 import pytest
 import requests
@@ -30,7 +31,7 @@ def load(server, auth, file, bucket=None, collection=None, extra=None):
     return main()
 
 
-def dump(server, auth, bucket=None, collection=None):
+def dump(server, auth, bucket=None, collection=None, extra=None):
     cmd = "kinto-wizard {} --server={} --auth={}"
     dump_cmd = cmd.format("dump --full", server, auth)
 
@@ -39,6 +40,9 @@ def dump(server, auth, bucket=None, collection=None):
 
     if collection:
         dump_cmd += " --collection={}".format(collection)
+
+    if extra:
+        dump_cmd += " " + extra
 
     sys.argv = dump_cmd.split(" ")
     output = io.StringIO()
@@ -73,8 +77,8 @@ class FunctionalTest(unittest.TestCase):
     def load(self, bucket=None, collection=None, filename=None, extra=None):
         return load(self.server, self.auth, filename or self.file, bucket, collection, extra)
 
-    def dump(self, bucket=None, collection=None):
-        return dump(self.server, self.auth, bucket, collection)
+    def dump(self, bucket=None, collection=None, extra=None):
+        return dump(self.server, self.auth, bucket, collection, extra)
 
     def validate(self, filename=None, code=0):
         try:
@@ -412,3 +416,48 @@ class MiscUpdates(FunctionalTest):
 
         after = client.get_group(id="toto", bucket="natim")["data"]["last_modified"]
         assert before == after
+
+
+class AttachmentsTest(FunctionalTest):
+    def setUp(self):
+        super().setUp()
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.create_bucket(id="main")
+        client.create_collection(bucket="main", id="archives")
+        client.add_attachment(
+            id="abc",
+            bucket="main",
+            collection="archives",
+            filepath="tests/dumps/image.jpg",
+            data={"title": "Test Attachment"},
+        )
+
+    def test_dump_with_attachments(self):
+        dumped = self.dump(extra="--attachments=/tmp/__attachments__")
+        yaml = YAML(typ="safe")
+        dumped_parsed = yaml.load(dumped)
+
+        with open("tests/dumps/with-attachments.yaml") as f:
+            expected = f.read()
+        expected_parsed = yaml.load(expected)
+
+        # The location is randomly assigned by server.
+        real_location = dumped_parsed["buckets"]["main"]["collections"]["archives"]["records"][
+            "abc"
+        ]["data"]["attachment"]["location"]
+
+        expected_parsed["buckets"]["main"]["collections"]["archives"]["records"]["abc"]["data"][
+            "attachment"
+        ]["location"] = real_location
+        dumped_without_last_modified = deepcopy(dumped_parsed)
+        del dumped_without_last_modified["buckets"]["main"]["data"]["last_modified"]
+        del dumped_without_last_modified["buckets"]["main"]["collections"]["archives"]["data"][
+            "last_modified"
+        ]
+        del dumped_without_last_modified["buckets"]["main"]["collections"]["archives"]["records"][
+            "abc"
+        ]["data"]["last_modified"]
+
+        assert dumped_without_last_modified == expected_parsed
+        assert os.path.exists("/tmp/__attachments__")
+        assert os.path.exists(os.path.join("/tmp/__attachments__", real_location))
