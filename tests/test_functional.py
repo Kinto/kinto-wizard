@@ -1,6 +1,7 @@
 import builtins
 import io
 import os
+import shutil
 import sys
 import unittest
 from contextlib import contextmanager, redirect_stdout
@@ -419,12 +420,11 @@ class MiscUpdates(FunctionalTest):
 
 
 class AttachmentsTest(FunctionalTest):
-    def setUp(self):
-        super().setUp()
+    def _create_attachment_manually(self):
         client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
         client.create_bucket(id="main")
         client.create_collection(bucket="main", id="archives")
-        client.add_attachment(
+        return client.add_attachment(
             id="abc",
             bucket="main",
             collection="archives",
@@ -433,6 +433,8 @@ class AttachmentsTest(FunctionalTest):
         )
 
     def test_dump_with_attachments(self):
+        self._create_attachment_manually()
+
         dumped = self.dump(extra="--attachments=/tmp/__attachments__")
         yaml = YAML(typ="safe")
         dumped_parsed = yaml.load(dumped)
@@ -461,3 +463,50 @@ class AttachmentsTest(FunctionalTest):
         assert dumped_without_last_modified == expected_parsed
         assert os.path.exists("/tmp/__attachments__")
         assert os.path.exists(os.path.join("/tmp/__attachments__", real_location))
+
+    def test_load_with_attachments_from_unexisting_folder(self):
+        self._create_attachment_manually()
+
+        self.load(filename="tests/dumps/with-attachments.yaml", extra="--attachments=/tmp/missing")
+
+    def test_load_with_attachments_from_unexisting_folder_with_existing_record(self):
+        self.load(filename="tests/dumps/with-attachments.yaml", extra="--attachments=/tmp/missing")
+
+    def test_load_with_attachments_with_missing_record(self):
+        os.makedirs("/tmp/__attachments__/main-workspace/archives/", exist_ok=True)
+        shutil.copyfile(
+            "tests/dumps/image.jpg", "/tmp/__attachments__/main-workspace/archives/image.jpg"
+        )
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+    def test_load_with_attachments_with_existing_record(self):
+        self._create_attachment_manually()
+
+        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
+        shutil.copyfile(
+            "tests/dumps/image.jpg",
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg",
+        )
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+    def test_load_with_attachments_with_existing_record_but_different(self):
+        self._create_attachment_manually()
+
+        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
+        with open(
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg", "wb"
+        ) as f:
+            f.write(b"Different content")
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )

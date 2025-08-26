@@ -109,14 +109,19 @@ async def execute():
             attachments = args.attachments
 
         logger.debug(
-            "Start introspection with %s%s%s%s..."
-            % (
-                "data" if data else "",
-                " and " if data and records else "",
-                "records" if records else "",
-                f" and attachments={attachments}" if attachments else "",
-            )
+            "Start introspection with %s...",
+            " and ".join(
+                filter(
+                    None,
+                    [
+                        "data" if data else None,
+                        "records" if records else None,
+                        "attachments" if attachments else None,
+                    ],
+                )
+            ),
         )
+
         result = await introspect_server(
             async_client,
             bucket=args.bucket,
@@ -142,6 +147,7 @@ async def execute():
             collection=args.collection,
             force=args.force,
             delete_missing_records=args.delete_records,
+            attachments=args.attachments,
         )
 
 
