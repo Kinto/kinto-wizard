@@ -420,11 +420,22 @@ class MiscUpdates(FunctionalTest):
 
 
 class AttachmentsTest(FunctionalTest):
+    def setUp(self):
+        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
+        return super().setUp()
+
+    def tearDown(self):
+        shutil.rmtree("/tmp/__attachments__", ignore_errors=True)
+        return super().tearDown()
+
+    @property
+    def client(self):
+        return Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+
     def _create_attachment_manually(self):
-        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
-        client.create_bucket(id="main")
-        client.create_collection(bucket="main", id="archives")
-        return client.add_attachment(
+        self.client.create_bucket(id="main")
+        self.client.create_collection(bucket="main", id="archives")
+        return self.client.add_attachment(
             id="abc",
             bucket="main",
             collection="archives",
@@ -473,20 +484,6 @@ class AttachmentsTest(FunctionalTest):
         self.load(filename="tests/dumps/with-attachments.yaml", extra="--attachments=/tmp/missing")
 
     def test_load_with_attachments_with_missing_record(self):
-        os.makedirs("/tmp/__attachments__/main-workspace/archives/", exist_ok=True)
-        shutil.copyfile(
-            "tests/dumps/image.jpg", "/tmp/__attachments__/main-workspace/archives/image.jpg"
-        )
-
-        self.load(
-            filename="tests/dumps/with-attachments.yaml",
-            extra="--attachments=/tmp/__attachments__",
-        )
-
-    def test_load_with_attachments_with_existing_record(self):
-        self._create_attachment_manually()
-
-        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
         shutil.copyfile(
             "tests/dumps/image.jpg",
             "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg",
@@ -497,10 +494,30 @@ class AttachmentsTest(FunctionalTest):
             extra="--attachments=/tmp/__attachments__",
         )
 
-    def test_load_with_attachments_with_existing_record_but_different(self):
-        self._create_attachment_manually()
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert (
+            record_after["data"]["attachment"]["filename"]
+            == "aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg"
+        )
+        assert record_after["data"]["attachment"]["size"] > 0
 
-        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
+    def test_load_with_attachments_with_existing_record(self):
+        attachment_before = self._create_attachment_manually()
+        shutil.copyfile(
+            "tests/dumps/image.jpg",
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg",
+        )
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert attachment_before["hash"] == record_after["data"]["attachment"]["hash"]
+
+    def test_load_with_attachments_with_existing_record_but_different(self):
+        attachment_before = self._create_attachment_manually()
         with open(
             "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg", "wb"
         ) as f:
@@ -510,3 +527,6 @@ class AttachmentsTest(FunctionalTest):
             filename="tests/dumps/with-attachments.yaml",
             extra="--attachments=/tmp/__attachments__",
         )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert attachment_before["hash"] != record_after["data"]["attachment"]["hash"]
