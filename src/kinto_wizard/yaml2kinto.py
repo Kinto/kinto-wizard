@@ -135,13 +135,32 @@ async def initialize_server(
                             data=collection_data,
                             permissions=collection_permissions,
                         )
+        logger.debug("Sending batch:\n\n%s" % batch.session.requests)
+    logger.info("Buckets, groups, and collections uploaded")
 
-                # 2.2.1 For each collection, create its records.
+    with await async_client.batch() as batch:
+        for bucket_id, bucket in buckets.items():
+            if bid and bucket_id != bid:
+                continue
+
+            bucket_collections = bucket.get("collections", {})
+            existing_bucket = existing_server_buckets.get(bucket_id, {})
+            existing_bucket_collections = existing_bucket.get("collections", {})
+
+            for collection_id, collection in bucket_collections.items():
+                if cid and collection_id != cid:
+                    continue
+
+                existing_collection = existing_bucket_collections.get(collection_id)
+                existing_records = (
+                    existing_collection.get("records", {}) if existing_collection else {}
+                )
+                collection_exists = existing_collection is not None
+
+                # For each collection, create its records.
                 collection_records = collection.get("records", {})
                 for record_id, record in collection_records.items():
-                    record_exists = collection_exists and record_id in existing_collection.get(
-                        "records", {}
-                    )
+                    record_exists = collection_exists and record_id in existing_records
                     record_data = record.get("data", {})
                     record_permissions = sorted_principals(record.get("permissions", None))
 
@@ -155,7 +174,7 @@ async def initialize_server(
                             safe=(not force),
                         )
                     else:
-                        existing_record = existing_collection["records"][record_id]
+                        existing_record = existing_records[record_id]
                         existing_record_data = existing_record.get("data", {})
                         existing_record_permissions = existing_record.get("permissions", {})
                         if (
@@ -191,4 +210,4 @@ async def initialize_server(
                         )
 
         logger.debug("Sending batch:\n\n%s" % batch.session.requests)
-    logger.info("Batch uploaded")
+    logger.info("Records uploaded")
