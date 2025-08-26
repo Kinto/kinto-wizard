@@ -1,5 +1,6 @@
 import builtins
 import io
+import json
 import os
 import shutil
 import sys
@@ -499,6 +500,21 @@ class AttachmentsTest(FunctionalTest):
             record_after["data"]["attachment"]["filename"]
             == "aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg"
         )
+        assert record_after["data"]["attachment"]["size"] > 0
+
+    def test_load_with_attachments_uses_filename_from_meta_file(self):
+        location = "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg"
+        shutil.copyfile("tests/dumps/image.jpg", location)
+        with open(location + ".meta.json", "w") as f:
+            json.dump({"attachment": {"filename": "image.jpg"}}, f)
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert record_after["data"]["attachment"]["filename"] == "image.jpg"
         assert record_after["data"]["attachment"]["size"] > 0
 
     def test_load_with_attachments_with_existing_record(self):

@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import json
 import os
 
 from .kinto2yaml import introspect_server, sorted_principals
@@ -210,6 +211,15 @@ async def initialize_server(
                                     != record_data["attachment"]["hash"]
                                 )
                             if must_upload_attachment:
+                                # If there is a .meta.json file, then read it to get original filename.
+                                try:
+                                    with open(f"{attachment_path}.meta.json", "rb") as f:
+                                        metadata = json.load(f)
+                                        filename = metadata["attachment"]["filename"]
+                                except (FileNotFoundError, json.JSONDecodeError) as e:
+                                    logger.error("Failed to read attachment metadata: %s", e)
+                                    filename = None
+
                                 # We upload the new attachment, and update its attributes together.
                                 await async_client.add_attachment(
                                     id=record_id,
@@ -218,6 +228,7 @@ async def initialize_server(
                                     data=record_data,
                                     permissions=record_permissions,
                                     filepath=attachment_path,
+                                    filename=filename,
                                 )
 
                     if not must_upload_attachment:
