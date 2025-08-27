@@ -29,7 +29,9 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: make install
+        run: |
+          make install
+          .venv/bin/pip install -r dev-requirements.txt
 
       - name: Serve attachments
         run: make serve-attachments &
