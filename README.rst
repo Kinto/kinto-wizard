@@ -14,9 +14,6 @@ a Yaml file, or inspect an existing server and output a Yaml file.
 You can define Kinto objects (bucket, collection, groups, records)
 and configure their attributes and permissions.
 
-`Read more information about the file structure <https://github.com/Kinto/kinto/wiki/Handling-permission-on-a-Kinto-Server>`_
-
-
 Installation
 ------------
 
@@ -40,6 +37,10 @@ Load
         --auth admin:credentials \
         new-config.yml
 
+The load command also accepts these options:
+
+* ``--attachments`` - Load the attachments files from the specified folder
+
 Dump
 ~~~~
 
@@ -54,6 +55,7 @@ The dump command also accepts these options:
 
 * ``--data`` - Include buckets, collections and groups data (attachments, schemas, display fields, uischema etc.).
 * ``--records`` - Include collections` records.
+* ``--attachments`` - Save the attachments files into the specified folder
 * ``--full`` - Combination of data and records.
 
 Validate a dump
