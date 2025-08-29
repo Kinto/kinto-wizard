@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v5
@@ -29,7 +29,12 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: make install
+        run: |
+          make install
+          .venv/bin/pip install -r dev-requirements.txt
+
+      - name: Serve attachments
+        run: make serve-attachments &
 
       - name: Run kinto
         run: make run-kinto & sleep 5

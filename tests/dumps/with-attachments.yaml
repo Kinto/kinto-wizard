@@ -1,0 +1,28 @@
+buckets:
+  main:
+    data:
+      id: main
+    permissions:
+      write:
+      - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+    groups: {}
+    collections:
+      archives:
+        data:
+          id: archives
+        permissions:
+          write:
+          - basicauth:8e79ddf13abb4e8034f060b6f2975275975e5866727595301e77ba5494b127c4
+        records:
+          abc:
+            data:
+              id: abc
+              title: Test Attachment
+              attachment:
+                filename: image.jpg
+                location: main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg
+                hash: 73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049
+                size: 2
+                mimetype: image/jpeg
+            permissions: {}
+

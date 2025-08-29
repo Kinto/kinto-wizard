@@ -1,8 +1,13 @@
 import asyncio
+import itertools
+import os
 
 from kinto_http import exceptions as kinto_exceptions
 
 from .logger import logger
+
+
+MAX_PARALLEL_REQUESTS = 8
 
 
 def sorted_principals(permissions):
@@ -26,11 +31,18 @@ async def gather_dict(dct):
     return {k: v for k, v in keys_results if v is not None}
 
 
-async def introspect_server(client, bucket=None, collection=None, data=False, records=False):
+async def introspect_server(
+    client, bucket=None, collection=None, data=False, records=False, attachments=None
+):
     if bucket:
         logger.info("Only inspect bucket `{}`.".format(bucket))
         bucket_info = await introspect_bucket(
-            client, bucket, collection=collection, data=data, records=records
+            client,
+            bucket,
+            collection=collection,
+            data=data,
+            records=records,
+            attachments=attachments,
         )
         if bucket_info:
             return {"buckets": {bucket: bucket_info}}
@@ -41,7 +53,12 @@ async def introspect_server(client, bucket=None, collection=None, data=False, re
     buckets_tree = await gather_dict(
         {
             bucket["id"]: introspect_bucket(
-                client, bucket["id"], collection=collection, data=data, records=records
+                client,
+                bucket["id"],
+                collection=collection,
+                data=data,
+                records=records,
+                attachments=attachments,
             )
             for bucket in buckets
         }
@@ -49,7 +66,9 @@ async def introspect_server(client, bucket=None, collection=None, data=False, re
     return {"buckets": buckets_tree}
 
 
-async def introspect_bucket(client, bid, collection=None, data=False, records=False):
+async def introspect_bucket(
+    client, bid, collection=None, data=False, records=False, attachments=None
+):
     logger.info("Fetch information of bucket {!r}".format(bid))
     try:
         bucket = await client.get_bucket(id=bid)
@@ -67,7 +86,12 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
                 "permissions": sorted_principals(permissions),
                 "collections": {
                     collection: await introspect_collection(
-                        client, bid, collection, data=data, records=records
+                        client,
+                        bid,
+                        collection,
+                        data=data,
+                        records=records,
+                        attachments=attachments,
                     )
                 },
             }
@@ -80,7 +104,12 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
         introspect_collections = gather_dict(
             {
                 collection["id"]: introspect_collection(
-                    client, bid, collection["id"], data=data, records=records
+                    client,
+                    bid,
+                    collection["id"],
+                    data=data,
+                    records=records,
+                    attachments=attachments,
                 )
                 for collection in collections
             }
@@ -104,7 +133,7 @@ async def introspect_bucket(client, bid, collection=None, data=False, records=Fa
     return result
 
 
-async def introspect_collection(client, bid, cid, data=False, records=False):
+async def introspect_collection(client, bid, cid, data=False, records=False, attachments=None):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = await client.get_collection(bucket=bid, id=cid)
     result = {
@@ -121,6 +150,23 @@ async def introspect_collection(client, bid, cid, data=False, records=False):
             record["id"]: {"data": record, "permissions": {}}
             for record in records
         }
+
+    if attachments:
+        futures = [
+            client.download_attachment(
+                record,
+                filepath=os.path.join(attachments, record["attachment"]["location"]),
+                save_metadata=True,
+            )
+            for record in records
+            if "attachment" in record
+        ]
+        if futures:
+            logger.info("Dump attachments to %s", attachments)
+        chunks = itertools.batched(futures, MAX_PARALLEL_REQUESTS)
+        for chunk in chunks:
+            await asyncio.gather(*chunk)
+
     return result
 
 

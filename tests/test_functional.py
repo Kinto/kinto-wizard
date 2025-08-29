@@ -1,9 +1,12 @@
 import builtins
 import io
+import json
 import os
+import shutil
 import sys
 import unittest
 from contextlib import contextmanager, redirect_stdout
+from copy import deepcopy
 
 import pytest
 import requests
@@ -30,7 +33,7 @@ def load(server, auth, file, bucket=None, collection=None, extra=None):
     return main()
 
 
-def dump(server, auth, bucket=None, collection=None):
+def dump(server, auth, bucket=None, collection=None, extra=None):
     cmd = "kinto-wizard {} --server={} --auth={}"
     dump_cmd = cmd.format("dump --full", server, auth)
 
@@ -39,6 +42,9 @@ def dump(server, auth, bucket=None, collection=None):
 
     if collection:
         dump_cmd += " --collection={}".format(collection)
+
+    if extra:
+        dump_cmd += " " + extra
 
     sys.argv = dump_cmd.split(" ")
     output = io.StringIO()
@@ -73,8 +79,8 @@ class FunctionalTest(unittest.TestCase):
     def load(self, bucket=None, collection=None, filename=None, extra=None):
         return load(self.server, self.auth, filename or self.file, bucket, collection, extra)
 
-    def dump(self, bucket=None, collection=None):
-        return dump(self.server, self.auth, bucket, collection)
+    def dump(self, bucket=None, collection=None, extra=None):
+        return dump(self.server, self.auth, bucket, collection, extra)
 
     def validate(self, filename=None, code=0):
         try:
@@ -412,3 +418,131 @@ class MiscUpdates(FunctionalTest):
 
         after = client.get_group(id="toto", bucket="natim")["data"]["last_modified"]
         assert before == after
+
+
+class AttachmentsTest(FunctionalTest):
+    def setUp(self):
+        os.makedirs("/tmp/__attachments__/main/archives/", exist_ok=True)
+        return super().setUp()
+
+    def tearDown(self):
+        shutil.rmtree("/tmp/__attachments__", ignore_errors=True)
+        return super().tearDown()
+
+    @property
+    def client(self):
+        return Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+
+    def _create_attachment_manually(self):
+        self.client.create_bucket(id="main")
+        self.client.create_collection(bucket="main", id="archives")
+        return self.client.add_attachment(
+            id="abc",
+            bucket="main",
+            collection="archives",
+            filepath="tests/dumps/image.jpg",
+            data={"title": "Test Attachment"},
+        )
+
+    def test_dump_with_attachments(self):
+        self._create_attachment_manually()
+
+        dumped = self.dump(extra="--attachments=/tmp/__attachments__")
+        yaml = YAML(typ="safe")
+        dumped_parsed = yaml.load(dumped)
+
+        with open("tests/dumps/with-attachments.yaml") as f:
+            expected = f.read()
+        expected_parsed = yaml.load(expected)
+
+        # The location is randomly assigned by server.
+        real_location = dumped_parsed["buckets"]["main"]["collections"]["archives"]["records"][
+            "abc"
+        ]["data"]["attachment"]["location"]
+
+        expected_parsed["buckets"]["main"]["collections"]["archives"]["records"]["abc"]["data"][
+            "attachment"
+        ]["location"] = real_location
+        dumped_without_last_modified = deepcopy(dumped_parsed)
+        del dumped_without_last_modified["buckets"]["main"]["data"]["last_modified"]
+        del dumped_without_last_modified["buckets"]["main"]["collections"]["archives"]["data"][
+            "last_modified"
+        ]
+        del dumped_without_last_modified["buckets"]["main"]["collections"]["archives"]["records"][
+            "abc"
+        ]["data"]["last_modified"]
+
+        assert dumped_without_last_modified == expected_parsed
+        assert os.path.exists("/tmp/__attachments__")
+        assert os.path.exists(os.path.join("/tmp/__attachments__", real_location))
+
+    def test_load_with_attachments_from_unexisting_folder(self):
+        self._create_attachment_manually()
+
+        self.load(filename="tests/dumps/with-attachments.yaml", extra="--attachments=/tmp/missing")
+
+    def test_load_with_attachments_from_unexisting_folder_with_existing_record(self):
+        self.load(filename="tests/dumps/with-attachments.yaml", extra="--attachments=/tmp/missing")
+
+    def test_load_with_attachments_with_missing_record(self):
+        shutil.copyfile(
+            "tests/dumps/image.jpg",
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg",
+        )
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert (
+            record_after["data"]["attachment"]["filename"]
+            == "aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg"
+        )
+        assert record_after["data"]["attachment"]["size"] > 0
+
+    def test_load_with_attachments_uses_filename_from_meta_file(self):
+        location = "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg"
+        shutil.copyfile("tests/dumps/image.jpg", location)
+        with open(location + ".meta.json", "w") as f:
+            json.dump({"attachment": {"filename": "image.jpg"}}, f)
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert record_after["data"]["attachment"]["filename"] == "image.jpg"
+        assert record_after["data"]["attachment"]["size"] > 0
+
+    def test_load_with_attachments_with_existing_record(self):
+        attachment_before = self._create_attachment_manually()
+        shutil.copyfile(
+            "tests/dumps/image.jpg",
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg",
+        )
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert attachment_before["hash"] == record_after["data"]["attachment"]["hash"]
+
+    def test_load_with_attachments_with_existing_record_but_different(self):
+        attachment_before = self._create_attachment_manually()
+        with open(
+            "/tmp/__attachments__/main/archives/aedddd6b-f6ef-423b-8e4c-ac23a74736c3.jpg", "wb"
+        ) as f:
+            f.write(b"Different content")
+
+        self.load(
+            filename="tests/dumps/with-attachments.yaml",
+            extra="--attachments=/tmp/__attachments__",
+        )
+
+        record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
+        assert attachment_before["hash"] != record_after["data"]["attachment"]["hash"]
