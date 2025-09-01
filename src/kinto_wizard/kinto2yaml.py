@@ -142,7 +142,7 @@ async def introspect_collection(client, bid, cid, data=False, records=False, att
     if data:
         result["data"] = collection["data"]
 
-    if records:
+    if records or attachments:
         records = await client.get_records(bucket=bid, collection=cid)
         result["records"] = {
             # XXX: we don't show permissions, until we have a way to fetch records
