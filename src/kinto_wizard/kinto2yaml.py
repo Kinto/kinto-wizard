@@ -37,6 +37,7 @@ async def introspect_server(
     collection=None,
     data=False,
     permissions=True,
+    buckets=True,
     collections=True,
     groups=True,
     records=False,
@@ -50,6 +51,7 @@ async def introspect_server(
             collection=collection,
             data=data,
             permissions=permissions,
+            buckets=buckets,
             collections=collections,
             groups=groups,
             records=records,
@@ -69,6 +71,7 @@ async def introspect_server(
                 collection=collection,
                 data=data,
                 permissions=permissions,
+                buckets=buckets,
                 collections=collections,
                 groups=groups,
                 records=records,
@@ -86,6 +89,7 @@ async def introspect_bucket(
     collection=None,
     data=False,
     permissions=True,
+    buckets=True,
     collections=True,
     groups=True,
     records=False,
@@ -107,6 +111,8 @@ async def introspect_bucket(
                         bid,
                         collection,
                         data=data,
+                        permissions=permissions,
+                        collections=collections,
                         records=records,
                         attachments=attachments,
                     )
@@ -125,6 +131,7 @@ async def introspect_bucket(
                         collection["id"],
                         data=data,
                         permissions=permissions,
+                        collections=collections,
                         records=records,
                         attachments=attachments,
                     )
@@ -142,35 +149,42 @@ async def introspect_bucket(
                 }
             )
 
-    if permissions:
+    if buckets and permissions:
         if len(bucket["permissions"]) == 0:
             logger.warning(
                 "⚠️ Could not read permissions of bucket {!r}".format(bid)
             )  # pragma: no cover
         result["permissions"] = sorted_principals(bucket["permissions"])
 
-    if data:
+    if buckets and data:
         result["data"] = bucket["data"]
 
     return result
 
 
 async def introspect_collection(
-    client, bid, cid, data=False, permissions=True, records=False, attachments=None
+    client,
+    bid,
+    cid,
+    data=False,
+    permissions=True,
+    collections=True,
+    records=False,
+    attachments=None,
 ):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = await client.get_collection(bucket=bid, id=cid)
 
     result = {}
 
-    if permissions:
+    if collections and permissions:
         if len(collection["permissions"]) == 0:
             logger.warning(
                 "⚠️ Could not read permissions of collection {!r}/{!r}".format(bid, cid)
             )  # pragma: no cover
         result["permissions"] = sorted_principals(collection["permissions"])
 
-    if data:
+    if collections and data:
         result["data"] = collection["data"]
 
     if records:
@@ -178,7 +192,7 @@ async def introspect_collection(
         result["records"] = {
             # XXX: we don't show permissions, until we have a way to fetch records
             # in batch (see Kinto/kinto-http.py#145)
-            record["id"]: {"data": record, "permissions": {}}
+            record["id"]: {"data": record, "permissions": {}} if permissions else {"data": record}
             for record in records
         }
 

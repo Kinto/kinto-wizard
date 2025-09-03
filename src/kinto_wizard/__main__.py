@@ -81,7 +81,7 @@ async def execute():
         help="Full output (same as with --data, --permissions, --collections, --groups and --records options)",
         action="store_true",
     )
-    for resource in ("collection", "group", "record"):
+    for resource in ("bucket", "collection", "group", "record"):
         subparser.add_argument(
             f"--{resource}s",
             help=f"Export {resource}s",
@@ -145,6 +145,7 @@ async def execute():
     if args.which == "dump":
         if args.full:
             records = True
+            buckets = True
             collections = True
             groups = True
             attachments = args.attachments or "__attachments__"
@@ -152,6 +153,7 @@ async def execute():
             permissions = True
         else:
             records = args.dump_records
+            buckets = args.dump_buckets
             collections = args.dump_collections
             groups = args.dump_groups
             attachments = args.attachments
@@ -181,6 +183,7 @@ async def execute():
             collection=args.collection,
             data=data,
             permissions=permissions,
+            buckets=buckets,
             collections=collections,
             groups=groups,
             records=records,

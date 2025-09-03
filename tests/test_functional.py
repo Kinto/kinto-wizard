@@ -118,7 +118,9 @@ class SimpleDump(FunctionalTest):
         sys.argv = load_cmd.split(" ")
         main()
 
-        dump_cmd = cmd.format("dump", self.server, self.auth) + " --permissions --collections --groups"
+        dump_cmd = (
+            cmd.format("dump", self.server, self.auth) + " --permissions --collections --groups"
+        )
         sys.argv = dump_cmd.split(" ")
         output = io.StringIO()
         with redirect_stdout(output):
