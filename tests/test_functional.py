@@ -118,7 +118,7 @@ class SimpleDump(FunctionalTest):
         sys.argv = load_cmd.split(" ")
         main()
 
-        dump_cmd = cmd.format("dump", self.server, self.auth)
+        dump_cmd = cmd.format("dump", self.server, self.auth) + " --permissions"
         sys.argv = dump_cmd.split(" ")
         output = io.StringIO()
         with redirect_stdout(output):
@@ -273,7 +273,7 @@ class DataRecordsDump(FunctionalTest):
         sys.argv = load_cmd.split(" ")
         main()
 
-        cmd = "kinto-wizard {} --server={} --auth={} --data --records"
+        cmd = "kinto-wizard {} --server={} --auth={} --data --records --permissions"
         load_cmd = cmd.format("dump", self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         output = io.StringIO()

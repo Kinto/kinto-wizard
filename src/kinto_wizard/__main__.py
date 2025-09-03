@@ -50,13 +50,29 @@ async def execute():
     cli_utils.add_parser_options(subparser)
     subparser.add_argument(
         "--full",
-        help="Full output (same as with both --data and --records options)",
+        help="Full output (same as with --data, --permissions, --collections, --groups and --records options)",
         action="store_true",
     )
+    for resource in ("collection", "group", "record"):
+        subparser.add_argument(
+            f"--{resource}s",
+            help=f"Export {resource}s",
+            action="store_true",
+            dest=f"dump_{resource}s",
+            default=None,
+        )
     subparser.add_argument(
-        "--data", help="Export buckets, collections and groups data", action="store_true"
+        "--data",
+        help="Export buckets, collections and groups data",
+        action="store_true",
+        default=False,
     )
-    subparser.add_argument("--records", help="Export collections' records", action="store_true")
+    subparser.add_argument(
+        "--permissions",
+        help="Export buckets, collections and groups permissions",
+        action="store_true",
+        default=False,
+    )
     subparser.add_argument(
         "--attachments", help="Export collections' attachments to specified folder", default=None
     )
@@ -100,13 +116,19 @@ async def execute():
     # Run chosen subcommand.
     if args.which == "dump":
         if args.full:
-            data = True
             records = True
+            collections = True
+            groups = True
             attachments = args.attachments or "__attachments__"
+            data = True
+            permissions = True
         else:
-            data = args.data
-            records = args.records
+            records = args.dump_records
+            collections = True  # args.dump_collections or args.dump_records
+            groups = True  # args.dump_groups
             attachments = args.attachments
+            data = args.data
+            permissions = args.permissions
 
         logger.debug(
             "Start introspection with %s...",
@@ -115,6 +137,9 @@ async def execute():
                     None,
                     [
                         "data" if data else None,
+                        "permissions" if permissions else None,
+                        "collections" if collections else None,
+                        "groups" if groups else None,
                         "records" if records else None,
                         "attachments" if attachments else None,
                     ],
@@ -127,6 +152,9 @@ async def execute():
             bucket=args.bucket,
             collection=args.collection,
             data=data,
+            permissions=permissions,
+            collections=collections,
+            groups=groups,
             records=records,
             attachments=attachments,
         )
