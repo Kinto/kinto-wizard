@@ -152,8 +152,8 @@ async def execute():
             permissions = True
         else:
             records = args.dump_records
-            collections = True  # args.dump_collections or args.dump_records
-            groups = True  # args.dump_groups
+            collections = args.dump_collections
+            groups = args.dump_groups
             attachments = args.attachments
             data = args.data
             permissions = args.permissions
