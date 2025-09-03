@@ -142,9 +142,6 @@ async def introspect_bucket(
                 }
             )
 
-    import sys
-
-    print("PERMISSION=", permissions, file=sys.stderr)
     if permissions:
         if len(bucket["permissions"]) == 0:
             logger.warning(
