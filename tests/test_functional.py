@@ -546,3 +546,11 @@ class AttachmentsTest(FunctionalTest):
 
         record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
         assert attachment_before["hash"] != record_after["data"]["attachment"]["hash"]
+
+
+class PartialLoadTest(FunctionalTest):
+    def test_load_only_groups(self):
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--groups")
+
+    def test_load_only_permissions(self):
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--permissions")
