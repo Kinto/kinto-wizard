@@ -39,7 +39,13 @@ Load
 
 The load command also accepts these options:
 
+* ``--data`` - Load data attributes.
+* ``--permissions``: - Load objects permissions.
+* ``--collections`` - Load collections.
+* ``--groups`` - Load groups.
+* ``--records`` - Load collections` records.
 * ``--attachments`` - Load the attachments files from the specified folder
+* ``--full`` - Combination of all flags (default).
 
 Dump
 ~~~~
@@ -54,9 +60,12 @@ Dump
 The dump command also accepts these options:
 
 * ``--data`` - Include buckets, collections and groups data (attachments, schemas, display fields, uischema etc.).
+* ``--permissions``: - Include objects permissions.
+* ``--collections`` - Include collections.
+* ``--groups`` - Include groups.
 * ``--records`` - Include collections` records.
 * ``--attachments`` - Save the attachments files into the specified folder
-* ``--full`` - Combination of data and records.
+* ``--full`` - Combination of all flags (default).
 
 Validate a dump
 ---------------

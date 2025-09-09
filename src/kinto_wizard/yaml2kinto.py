@@ -15,6 +15,12 @@ async def initialize_server(
     force=False,
     delete_missing_records=False,
     attachments=None,
+    load_buckets=True,
+    load_collections=True,
+    load_records=True,
+    load_groups=True,
+    load_data=True,
+    load_permissions=True,
 ):
     logger.debug("Converting YAML config into a server batch.")
     bid = bucket
@@ -37,115 +43,134 @@ async def initialize_server(
                 logger.debug("Skip bucket {}".format(bucket_id))
                 continue
             bucket_exists = bucket_id in existing_server_buckets
-            bucket_data = bucket.get("data", {})
-            bucket_permissions = sorted_principals(bucket.get("permissions", {}))
-            bucket_groups = bucket.get("groups", {})
-            bucket_collections = bucket.get("collections", {})
+            bucket_data = bucket.get("data", {}) if load_data else {}
+            bucket_permissions = (
+                sorted_principals(bucket.get("permissions", {})) if load_permissions else {}
+            )
+            bucket_groups = bucket.get("groups", {}) if load_groups else {}
+            bucket_collections = bucket.get("collections", {}) if load_collections else {}
 
             # Skip bucket if we don't have a collection in them
             if cid and cid not in bucket_collections:
                 logger.debug("Skip bucket {}".format(bucket_id))
                 continue
 
-            if not bucket_exists:
-                existing_bucket_groups = {}
-                existing_bucket_collections = {}
+            if load_buckets:
+                if not bucket_exists:
+                    existing_bucket_groups = {}
+                    existing_bucket_collections = {}
 
-                # Create the bucket if not present in the introspection
-                await batch.create_bucket(
-                    id=bucket_id,
-                    data=bucket_data,
-                    permissions=bucket_permissions,
-                    safe=(not force),
-                )
-            else:
-                existing_bucket = existing_server_buckets[bucket_id]
-                existing_bucket_groups = {}
-                existing_bucket_collections = {}
-                existing_bucket_data = {}
-                existing_bucket_permissions = {}
-
-                if existing_bucket:
-                    existing_bucket_groups = existing_bucket.get("groups", {})
-                    existing_bucket_collections = existing_bucket.get("collections", {})
-
-                    # Patch the bucket if mandatory
-                    existing_bucket_data = existing_bucket.get("data", {})
-                    existing_bucket_permissions = existing_bucket.get("permissions", {})
-
-                if (
-                    existing_bucket_data != bucket_data
-                    or existing_bucket_permissions != bucket_permissions
-                ):
-                    await batch.patch_bucket(
-                        id=bucket_id, data=bucket_data, permissions=bucket_permissions
+                    # Create the bucket if not present in the introspection
+                    await batch.create_bucket(
+                        id=bucket_id,
+                        data=bucket_data if load_data else None,
+                        permissions=bucket_permissions if load_permissions else None,
+                        safe=(not force),
                     )
+                else:
+                    existing_bucket = existing_server_buckets[bucket_id]
+                    existing_bucket_groups = {}
+                    existing_bucket_collections = {}
+                    existing_bucket_data = {}
+                    existing_bucket_permissions = {}
+
+                    if existing_bucket:
+                        existing_bucket_groups = existing_bucket.get("groups", {})
+                        existing_bucket_collections = existing_bucket.get("collections", {})
+
+                        # Patch the bucket if mandatory
+                        existing_bucket_data = existing_bucket.get("data", {})
+                        existing_bucket_permissions = existing_bucket.get("permissions", {})
+
+                    if (
+                        existing_bucket_data != bucket_data
+                        or existing_bucket_permissions != bucket_permissions
+                    ):
+                        await batch.patch_bucket(
+                            id=bucket_id,
+                            data=bucket_data if load_data else None,
+                            permissions=bucket_permissions if load_permissions else None,
+                        )
 
             # 2.1 For each group, patch it if needed
-            for group_id, group_info in bucket_groups.items():
-                group_exists = bucket_exists and group_id in existing_bucket_groups
-                group_data = group_info.get("data", {})
-                group_permissions = sorted_principals(group_info.get("permissions", {}))
-
-                if not group_exists:
-                    await batch.create_group(
-                        id=group_id,
-                        bucket=bucket_id,
-                        data=group_data,
-                        permissions=group_permissions,
-                        safe=(not force),
+            if load_groups:
+                for group_id, group_info in bucket_groups.items():
+                    group_exists = bucket_exists and group_id in existing_bucket_groups
+                    group_data = group_info.get("data", {}) if load_data else {}
+                    group_permissions = (
+                        sorted_principals(group_info.get("permissions", {}))
+                        if load_permissions
+                        else {}
                     )
-                else:
-                    existing_group = existing_bucket_groups[group_id]
-                    existing_group_data = existing_group.get("data", {})
-                    existing_group_permissions = existing_group.get("permissions", {})
 
-                    if (
-                        existing_group_data != group_data
-                        or existing_group_permissions != group_permissions
-                    ):
-                        await batch.patch_group(
+                    if not group_exists:
+                        await batch.create_group(
                             id=group_id,
                             bucket=bucket_id,
-                            data=group_data,
-                            permissions=group_permissions,
+                            data=group_data if load_data else None,
+                            permissions=group_permissions if load_permissions else None,
+                            safe=(not force),
                         )
+                    else:
+                        existing_group = existing_bucket_groups[group_id]
+                        existing_group_data = existing_group.get("data", {})
+                        existing_group_permissions = existing_group.get("permissions", {})
+
+                        if (
+                            existing_group_data != group_data
+                            or existing_group_permissions != group_permissions
+                        ):
+                            await batch.patch_group(
+                                id=group_id,
+                                bucket=bucket_id,
+                                data=group_data if load_data else None,
+                                permissions=group_permissions if load_permissions else None,
+                            )
 
             # 2.2 For each collection patch it if mandatory
-            for collection_id, collection in bucket_collections.items():
-                # Skip collections that we don't want to import.
-                if cid and collection_id != cid:
-                    logger.debug("Skip collection {}/{}".format(bucket_id, collection_id))
-                    continue
-                collection_exists = bucket_exists and collection_id in existing_bucket_collections
-                collection_data = collection.get("data", {})
-                collection_permissions = sorted_principals(collection.get("permissions", {}))
-
-                if not collection_exists:
-                    await batch.create_collection(
-                        id=collection_id,
-                        bucket=bucket_id,
-                        data=collection_data,
-                        permissions=collection_permissions,
-                        safe=(not force),
+            if load_collections:
+                for collection_id, collection in bucket_collections.items():
+                    # Skip collections that we don't want to import.
+                    if cid and collection_id != cid:
+                        logger.debug("Skip collection {}/{}".format(bucket_id, collection_id))
+                        continue
+                    collection_exists = (
+                        bucket_exists and collection_id in existing_bucket_collections
                     )
-                else:
-                    existing_collection = existing_bucket_collections[collection_id]
-                    existing_collection_data = existing_collection.get("data", {})
-                    existing_collection_permissions = existing_collection.get("permissions", {})
+                    collection_data = collection.get("data", {})
+                    collection_permissions = sorted_principals(collection.get("permissions", {}))
 
-                    if (
-                        existing_collection_data != collection_data
-                        or existing_collection_permissions != collection_permissions
-                    ):
-                        await batch.patch_collection(
+                    if not collection_exists:
+                        await batch.create_collection(
                             id=collection_id,
                             bucket=bucket_id,
-                            data=collection_data,
-                            permissions=collection_permissions,
+                            data=collection_data if load_data else None,
+                            permissions=collection_permissions if load_permissions else None,
+                            safe=(not force),
                         )
+                    else:
+                        existing_collection = existing_bucket_collections[collection_id]
+                        existing_collection_data = existing_collection.get("data", {})
+                        existing_collection_permissions = existing_collection.get(
+                            "permissions", {}
+                        )
+
+                        if (
+                            existing_collection_data != collection_data
+                            or existing_collection_permissions != collection_permissions
+                        ):
+                            await batch.patch_collection(
+                                id=collection_id,
+                                bucket=bucket_id,
+                                data=collection_data if load_data else None,
+                                permissions=collection_permissions if load_permissions else None,
+                            )
         logger.debug("Sending batch:\n\n%s" % batch.session.requests)
     logger.info("Buckets, groups, and collections uploaded")
+
+    if not load_records:
+        # We're done here.
+        return
 
     with await async_client.batch() as batch:
         for bucket_id, bucket in buckets.items():
@@ -225,8 +250,8 @@ async def initialize_server(
                                     id=record_id,
                                     bucket=bucket_id,
                                     collection=collection_id,
-                                    data=record_data,
-                                    permissions=record_permissions,
+                                    data=record_data if load_data else None,
+                                    permissions=record_permissions if load_permissions else None,
                                     filepath=attachment_path,
                                     filename=filename,
                                 )
@@ -237,8 +262,8 @@ async def initialize_server(
                                 id=record_id,
                                 bucket=bucket_id,
                                 collection=collection_id,
-                                data=record_data,
-                                permissions=record_permissions,
+                                data=record_data if load_data else None,
+                                permissions=record_permissions if load_permissions else None,
                                 safe=(not force),
                             )
                         else:
@@ -253,8 +278,8 @@ async def initialize_server(
                                     id=record_id,
                                     bucket=bucket_id,
                                     collection=collection_id,
-                                    data=record_data,
-                                    permissions=record_permissions,
+                                    data=record_data if load_data else None,
+                                    permissions=record_permissions if load_permissions else None,
                                 )
 
                 if delete_missing_records and collection_exists and collection_records:

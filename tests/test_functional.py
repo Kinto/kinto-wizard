@@ -118,7 +118,9 @@ class SimpleDump(FunctionalTest):
         sys.argv = load_cmd.split(" ")
         main()
 
-        dump_cmd = cmd.format("dump", self.server, self.auth)
+        dump_cmd = (
+            cmd.format("dump", self.server, self.auth) + " --permissions --collections --groups"
+        )
         sys.argv = dump_cmd.split(" ")
         output = io.StringIO()
         with redirect_stdout(output):
@@ -273,7 +275,7 @@ class DataRecordsDump(FunctionalTest):
         sys.argv = load_cmd.split(" ")
         main()
 
-        cmd = "kinto-wizard {} --server={} --auth={} --data --records"
+        cmd = "kinto-wizard {} --server={} --auth={} --data --collections --groups --records --permissions"
         load_cmd = cmd.format("dump", self.server, self.auth)
         sys.argv = load_cmd.split(" ")
         output = io.StringIO()
@@ -546,3 +548,11 @@ class AttachmentsTest(FunctionalTest):
 
         record_after = self.client.get_record(bucket="main", collection="archives", id="abc")
         assert attachment_before["hash"] != record_after["data"]["attachment"]["hash"]
+
+
+class PartialLoadTest(FunctionalTest):
+    def test_load_only_groups(self):
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--groups")
+
+    def test_load_only_permissions(self):
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--permissions")

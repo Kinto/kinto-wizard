@@ -32,7 +32,16 @@ async def gather_dict(dct):
 
 
 async def introspect_server(
-    client, bucket=None, collection=None, data=False, records=False, attachments=None
+    client,
+    bucket=None,
+    collection=None,
+    data=False,
+    permissions=True,
+    buckets=True,
+    collections=True,
+    groups=True,
+    records=False,
+    attachments=None,
 ):
     if bucket:
         logger.info("Only inspect bucket `{}`.".format(bucket))
@@ -41,6 +50,10 @@ async def introspect_server(
             bucket,
             collection=collection,
             data=data,
+            permissions=permissions,
+            buckets=buckets,
+            collections=collections,
+            groups=groups,
             records=records,
             attachments=attachments,
         )
@@ -57,6 +70,10 @@ async def introspect_server(
                 bucket["id"],
                 collection=collection,
                 data=data,
+                permissions=permissions,
+                buckets=buckets,
+                collections=collections,
+                groups=groups,
                 records=records,
                 attachments=attachments,
             )
@@ -67,7 +84,16 @@ async def introspect_server(
 
 
 async def introspect_bucket(
-    client, bid, collection=None, data=False, records=False, attachments=None
+    client,
+    bid,
+    collection=None,
+    data=False,
+    permissions=True,
+    buckets=True,
+    collections=True,
+    groups=True,
+    records=False,
+    attachments=None,
 ):
     logger.info("Fetch information of bucket {!r}".format(bid))
     try:
@@ -76,20 +102,17 @@ async def introspect_bucket(
         logger.error("Could not read bucket {!r}".format(bid))
         return None
 
-    permissions = bucket.get("permissions", {})
-    if len(permissions) == 0:
-        logger.warn("Could not read permissions of bucket {!r}".format(bid))  # pragma: no cover
-
     if collection:
         try:
             result = {
-                "permissions": sorted_principals(permissions),
                 "collections": {
                     collection: await introspect_collection(
                         client,
                         bid,
                         collection,
                         data=data,
+                        permissions=permissions,
+                        collections=collections,
                         records=records,
                         attachments=attachments,
                     )
@@ -98,48 +121,70 @@ async def introspect_bucket(
         except kinto_exceptions.CollectionNotFound:
             return None
     else:
-        (collections, groups) = await asyncio.gather(
-            client.get_collections(bucket=bid), client.get_groups(bucket=bid)
-        )
-        introspect_collections = gather_dict(
-            {
-                collection["id"]: introspect_collection(
-                    client,
-                    bid,
-                    collection["id"],
-                    data=data,
-                    records=records,
-                    attachments=attachments,
-                )
-                for collection in collections
-            }
-        )
-        introspect_groups = gather_dict(
-            {
-                group["id"]: introspect_group(client, bid, group["id"], data=data)
-                for group in groups
-            }
-        )
-        (introspected_collections, introspected_groups) = await asyncio.gather(
-            introspect_collections, introspect_groups
-        )
-        result = {
-            "permissions": sorted_principals(permissions),
-            "collections": introspected_collections,
-            "groups": introspected_groups,
-        }
-    if data:
+        result = {}
+        if collections:
+            result["collections"] = await gather_dict(
+                {
+                    collection["id"]: introspect_collection(
+                        client,
+                        bid,
+                        collection["id"],
+                        data=data,
+                        permissions=permissions,
+                        collections=collections,
+                        records=records,
+                        attachments=attachments,
+                    )
+                    for collection in (await client.get_collections(bucket=bid))
+                }
+            )
+
+        if groups:
+            result["groups"] = await gather_dict(
+                {
+                    group["id"]: introspect_group(
+                        client, bid, group["id"], data=data, permissions=permissions
+                    )
+                    for group in (await client.get_groups(bucket=bid))
+                }
+            )
+
+    if buckets and permissions:
+        if len(bucket["permissions"]) == 0:
+            logger.warning(
+                "⚠️ Could not read permissions of bucket {!r}".format(bid)
+            )  # pragma: no cover
+        result["permissions"] = sorted_principals(bucket["permissions"])
+
+    if buckets and data:
         result["data"] = bucket["data"]
+
     return result
 
 
-async def introspect_collection(client, bid, cid, data=False, records=False, attachments=None):
+async def introspect_collection(
+    client,
+    bid,
+    cid,
+    data=False,
+    permissions=True,
+    collections=True,
+    records=False,
+    attachments=None,
+):
     logger.info("Fetch information of collection {!r}/{!r}".format(bid, cid))
     collection = await client.get_collection(bucket=bid, id=cid)
-    result = {
-        "permissions": sorted_principals(collection["permissions"]),
-    }
-    if data:
+
+    result = {}
+
+    if collections and permissions:
+        if len(collection["permissions"]) == 0:
+            logger.warning(
+                "⚠️ Could not read permissions of collection {!r}/{!r}".format(bid, cid)
+            )  # pragma: no cover
+        result["permissions"] = sorted_principals(collection["permissions"])
+
+    if collections and data:
         result["data"] = collection["data"]
 
     if records or attachments:
@@ -147,7 +192,7 @@ async def introspect_collection(client, bid, cid, data=False, records=False, att
         result["records"] = {
             # XXX: we don't show permissions, until we have a way to fetch records
             # in batch (see Kinto/kinto-http.py#145)
-            record["id"]: {"data": record, "permissions": {}}
+            record["id"]: {"data": record, "permissions": {}} if permissions else {"data": record}
             for record in records
         }
 
@@ -170,11 +215,21 @@ async def introspect_collection(client, bid, cid, data=False, records=False, att
     return result
 
 
-async def introspect_group(client, bid, gid, data=False):
+async def introspect_group(client, bid, gid, data=False, permissions=True):
     logger.info("Fetch information of group {!r}/{!r}".format(bid, gid))
     group = await client.get_group(bucket=bid, id=gid)
-    result = {"permissions": sorted_principals(group["permissions"])}
+
+    result = {}
+
+    if permissions:
+        if len(group["permissions"]) == 0:
+            logger.warning(
+                "⚠️ Could not read permissions of group {!r}/{!r}".format(bid, gid)
+            )  # pragma: no cover
+        result["permissions"] = sorted_principals(group["permissions"])
+
     data = group["data"] if data else {}
     data["members"] = group["data"]["members"]
     result["data"] = data
+
     return result
