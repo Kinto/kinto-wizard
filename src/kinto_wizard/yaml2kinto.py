@@ -1,10 +1,36 @@
 from __future__ import print_function
 
+import copy
 import json
 import os
 
 from .kinto2yaml import introspect_server, sorted_principals
 from .logger import logger
+
+
+def data_changed(existing_data, new_data):
+    """
+    Let's apply the PATCH and compare if data remains
+    the same.
+    """
+    patched_data = copy.deepcopy(existing_data)
+    patched_data.update(new_data)
+    return patched_data != existing_data
+
+
+def perms_changed(existing_perms, new_perms, user_id):
+    """
+    Let's apply the permissions changes and compare if permissions
+    remain the same.
+    """
+    patched_perms = copy.deepcopy(existing_perms)
+    patched_perms.update(new_perms)
+    # Kinto adds the user automatically.
+    patched_perms.setdefault("write", []).append(user_id)
+    # Kinto does not return empty lists, and uniquifies entries.
+    stripped_patched_perms = {k: set(v) for k, v in patched_perms.items() if v}
+    stripped_existing_perms = {k: set(v) for k, v in existing_perms.items() if v}
+    return stripped_patched_perms != stripped_existing_perms
 
 
 async def initialize_server(
@@ -28,12 +54,18 @@ async def initialize_server(
     # 1. Introspect current server state.
     if not force or delete_missing_records:
         current_server_status = await introspect_server(
-            async_client, bucket=bucket, collection=collection, records=True
+            async_client, bucket=bucket, collection=collection, data=True, records=True
         )
         existing_server_buckets = current_server_status["buckets"]
     else:
         # We don't need to load it because we will override it nevertheless.
         existing_server_buckets = {}
+
+    # Find out user_id to compare permissions later.
+    user_info = await async_client.server_info()
+    # If no user info, Kinto will assign permissions to `system.Everyone`.
+    user_id = user_info.get("user", {"id": "system.Everyone"}).get("id")
+
     # 2. For each bucket
     buckets = config["buckets"]
     with await async_client.batch() as batch:
@@ -82,9 +114,8 @@ async def initialize_server(
                         existing_bucket_data = existing_bucket.get("data", {})
                         existing_bucket_permissions = existing_bucket.get("permissions", {})
 
-                    if (
-                        existing_bucket_data != bucket_data
-                        or existing_bucket_permissions != bucket_permissions
+                    if data_changed(existing_bucket_data, bucket_data) or perms_changed(
+                        existing_bucket_permissions, bucket_permissions, user_id
                     ):
                         await batch.patch_bucket(
                             id=bucket_id,
@@ -116,9 +147,8 @@ async def initialize_server(
                         existing_group_data = existing_group.get("data", {})
                         existing_group_permissions = existing_group.get("permissions", {})
 
-                        if (
-                            existing_group_data != group_data
-                            or existing_group_permissions != group_permissions
+                        if data_changed(existing_group_data, group_data) or perms_changed(
+                            existing_group_permissions, group_permissions, user_id
                         ):
                             await batch.patch_group(
                                 id=group_id,
@@ -155,9 +185,10 @@ async def initialize_server(
                             "permissions", {}
                         )
 
-                        if (
-                            existing_collection_data != collection_data
-                            or existing_collection_permissions != collection_permissions
+                        if data_changed(
+                            existing_collection_data, collection_data
+                        ) or perms_changed(
+                            existing_collection_permissions, collection_permissions, user_id
                         ):
                             await batch.patch_collection(
                                 id=collection_id,
@@ -270,9 +301,8 @@ async def initialize_server(
                             existing_record = existing_records[record_id]
                             existing_record_data = existing_record.get("data", {})
                             existing_record_permissions = existing_record.get("permissions", {})
-                            if (
-                                existing_record_data != record_data
-                                or existing_record_permissions != record_permissions
+                            if data_changed(existing_record_data, record_data) or perms_changed(
+                                existing_record_permissions, record_permissions, user_id
                             ):
                                 await batch.update_record(
                                     id=record_id,
