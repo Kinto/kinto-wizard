@@ -421,6 +421,12 @@ class MiscUpdates(FunctionalTest):
         after = client.get_group(id="toto", bucket="natim")["data"]["last_modified"]
         assert before == after
 
+    def test_patching_bucket_data(self):
+        client = self.get_client()
+        client.create_bucket(id="natim")
+
+        self.load(filename="tests/dumps/with-groups.yaml")
+
 
 class AttachmentsTest(FunctionalTest):
     def setUp(self):
