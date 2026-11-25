@@ -1,0 +1,11 @@
+buckets:
+  natim:
+    collections:
+      toto:
+        data:
+          id: toto
+        records:
+          abc:
+            data:
+              id: abc
+              title: toto

@@ -4,7 +4,7 @@ import copy
 import json
 import os
 
-from .kinto2yaml import introspect_server, sorted_principals
+from .kinto2yaml import introspect_bucket, introspect_server, sorted_principals
 from .logger import logger
 
 
@@ -57,6 +57,16 @@ async def initialize_server(
             async_client, bucket=bucket, collection=collection, data=True, records=True
         )
         existing_server_buckets = current_server_status["buckets"]
+        if cid:
+            # Buckets are omitted from introspection if the collection does not exist yet.
+            for bucket_id in config["buckets"]:
+                if bucket_id in existing_server_buckets or (bid and bucket_id != bid):
+                    continue
+                bucket_info = await introspect_bucket(
+                    async_client, bucket_id, data=True, collections=False, groups=False
+                )
+                if bucket_info is not None:
+                    existing_server_buckets[bucket_id] = bucket_info
     else:
         # We don't need to load it because we will override it nevertheless.
         existing_server_buckets = {}
@@ -87,11 +97,12 @@ async def initialize_server(
                 logger.debug("Skip bucket {}".format(bucket_id))
                 continue
 
+            existing_bucket = existing_server_buckets.get(bucket_id) or {}
+            existing_bucket_groups = existing_bucket.get("groups", {})
+            existing_bucket_collections = existing_bucket.get("collections", {})
+
             if load_buckets:
                 if not bucket_exists:
-                    existing_bucket_groups = {}
-                    existing_bucket_collections = {}
-
                     # Create the bucket if not present in the introspection
                     await batch.create_bucket(
                         id=bucket_id,
@@ -100,19 +111,9 @@ async def initialize_server(
                         safe=(not force),
                     )
                 else:
-                    existing_bucket = existing_server_buckets[bucket_id]
-                    existing_bucket_groups = {}
-                    existing_bucket_collections = {}
-                    existing_bucket_data = {}
-                    existing_bucket_permissions = {}
-
-                    if existing_bucket:
-                        existing_bucket_groups = existing_bucket.get("groups", {})
-                        existing_bucket_collections = existing_bucket.get("collections", {})
-
-                        # Patch the bucket if mandatory
-                        existing_bucket_data = existing_bucket.get("data", {})
-                        existing_bucket_permissions = existing_bucket.get("permissions", {})
+                    # Patch the bucket if mandatory
+                    existing_bucket_data = existing_bucket.get("data", {})
+                    existing_bucket_permissions = existing_bucket.get("permissions", {})
 
                     if data_changed(existing_bucket_data, bucket_data) or perms_changed(
                         existing_bucket_permissions, bucket_permissions, user_id
@@ -227,7 +228,7 @@ async def initialize_server(
                 for record_id, record in collection_records.items():
                     record_exists = collection_exists and record_id in existing_records
                     record_data = record.get("data", {})
-                    record_permissions = sorted_principals(record.get("permissions", None))
+                    record_permissions = sorted_principals(record.get("permissions", {}))
 
                     # If 'attachment' field is present on record, then we look whether we have
                     # to upload it from the local folder `attachments`.

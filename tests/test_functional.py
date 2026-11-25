@@ -562,3 +562,26 @@ class PartialLoadTest(FunctionalTest):
 
     def test_load_only_permissions(self):
         self.load(filename="tests/dumps/dump-full.yaml", extra="--permissions")
+
+    def test_load_collections_and_records_without_buckets(self):
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--buckets")
+        self.load(filename="tests/dumps/dump-full.yaml", extra="--collections --records")
+
+    def test_load_records_without_permissions(self):
+        self.load(filename="tests/dumps/without-permissions.yaml")
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        r = client.get_record(bucket="natim", collection="toto", id="abc")
+        assert r["data"]["title"] == "toto"
+
+    def test_load_new_collection_into_existing_bucket(self):
+        client = Client(server_url=self.server, auth=tuple(self.auth.split(":")))
+        client.create_bucket(id="natim", data={"existing": "attr"})
+
+        self.load(
+            filename="tests/dumps/without-permissions.yaml", bucket="natim", collection="toto"
+        )
+        self.load(filename="tests/dumps/without-permissions.yaml", collection="toto")
+
+        assert client.get_bucket(id="natim")["data"]["existing"] == "attr"
+        r = client.get_record(bucket="natim", collection="toto", id="abc")
+        assert r["data"]["title"] == "toto"
