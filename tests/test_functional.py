@@ -585,3 +585,12 @@ class PartialLoadTest(FunctionalTest):
         assert client.get_bucket(id="natim")["data"]["existing"] == "attr"
         r = client.get_record(bucket="natim", collection="toto", id="abc")
         assert r["data"]["title"] == "toto"
+
+    def test_load_collection_twice_with_groups(self):
+        self.load(
+            filename="tests/dumps/collection-with-groups.yaml", bucket="natim", collection="toto"
+        )
+        self.load(
+            filename="tests/dumps/collection-with-groups.yaml", bucket="natim", collection="toto"
+        )
+        self.load(filename="tests/dumps/collection-with-groups.yaml", collection="toto")

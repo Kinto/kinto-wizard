@@ -58,15 +58,19 @@ async def initialize_server(
         )
         existing_server_buckets = current_server_status["buckets"]
         if cid:
-            # Buckets are omitted from introspection if the collection does not exist yet.
+            # When a collection is specified, introspection omits the buckets groups,
+            # and the whole bucket if the collection does not exist yet.
             for bucket_id in config["buckets"]:
-                if bucket_id in existing_server_buckets or (bid and bucket_id != bid):
+                if bid and bucket_id != bid:
                     continue
                 bucket_info = await introspect_bucket(
-                    async_client, bucket_id, data=True, collections=False, groups=False
+                    async_client, bucket_id, data=True, collections=False
                 )
                 if bucket_info is not None:
-                    existing_server_buckets[bucket_id] = bucket_info
+                    existing_server_buckets[bucket_id] = {
+                        **bucket_info,
+                        **existing_server_buckets.get(bucket_id, {}),
+                    }
     else:
         # We don't need to load it because we will override it nevertheless.
         existing_server_buckets = {}
