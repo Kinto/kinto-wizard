@@ -1,5 +1,5 @@
 [project]
-dynamic = ["version", "dependencies", "readme"]
+dynamic = ["version", "readme"]
 name = "kinto-wizard"
 description = "kinto-wizard is a tool to configure a kinto server from an YAML file."
 license = {file = "LICENSE"}
@@ -11,9 +11,15 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     "License :: OSI Approved :: Apache Software License"
 ]
+requires-python = ">=3.12"
 keywords = ["web services"]
 authors = [
   {name = "Mozilla Services", email = "developers@kinto-storage.org"},
+]
+dependencies = [
+    "jsonschema",
+    "kinto-http>=11.11.0",
+    "ruamel.yaml>0.15",
 ]
 
 [project.urls]
@@ -23,7 +29,6 @@ Repository = "https://github.com/Kinto/kinto-wizard"
 # can be empty if no extra settings are needed, presence enables setuptools_scm
 
 [tool.setuptools.dynamic]
-dependencies = { file = ["requirements.in"] }
 readme = {file = ["README.rst", "CONTRIBUTORS.rst"]}
 
 [build-system]
@@ -33,6 +38,7 @@ build-backend = "setuptools.build_meta"
 [project.optional-dependencies]
 dev = [
     "kinto",
+    "kinto-attachment",
     "ruff",
     "pytest",
     "pytest-cache",
@@ -42,9 +48,6 @@ dev = [
 
 [project.scripts]
 kinto-wizard = "kinto_wizard.__main__:main"
-
-[tool.pip-tools]
-generate-hashes = true
 
 [tool.coverage.run]
 relative_files = true

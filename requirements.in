@@ -1,3 +1,0 @@
-jsonschema
-kinto-http>=11.11.0
-ruamel.yaml>0.15
