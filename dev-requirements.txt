@@ -1,8 +1,0 @@
-kinto
-flake8
-pytest
-pytest-cache
-pytest-cov
-pytest-xdist
-tox
-kinto-attachment
